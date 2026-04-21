@@ -1,0 +1,25 @@
+# Copy to fly.toml for a private deployment. Keep the real app name and hostname
+# out of the public repo.
+app = "mobidex-relay-your-suffix"
+primary_region = "dfw"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  MOBIDEX_ENABLE_PUSH_SERVICE = "false"
+  MOBIDEX_TRUST_PROXY = "true"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

@@ -51,7 +51,7 @@ const RELAY_WATCHDOG_PING_INTERVAL_MS = 10_000;
 const RELAY_WATCHDOG_STALE_AFTER_MS = 25_000;
 const BRIDGE_STATUS_HEARTBEAT_INTERVAL_MS = 5_000;
 const STALE_RELAY_STATUS_MESSAGE = "Relay heartbeat stalled; reconnect pending.";
-const RELAY_HISTORY_IMAGE_REFERENCE_URL = "remodex://history-image-elided";
+const RELAY_HISTORY_IMAGE_REFERENCE_URL = "mobidex://history-image-elided";
 function startBridge({
   config: explicitConfig = null,
   printPairingQr = true,
@@ -65,8 +65,8 @@ function startBridge({
   });
   const relayBaseUrl = config.relayUrl.replace(/\/+$/, "");
   if (!relayBaseUrl) {
-    console.error("[remodex] No relay URL configured.");
-    console.error("[remodex] In a source checkout, run ./run-local-remodex.sh or set REMODEX_RELAY.");
+    console.error("[mobidex] No relay URL configured.");
+    console.error("[mobidex] In a source checkout, run ./run-local-remodex.sh or set MOBIDEX_RELAY.");
     process.exit(1);
   }
 
@@ -74,7 +74,7 @@ function startBridge({
   try {
     deviceState = loadOrCreateBridgeDeviceState();
   } catch (error) {
-    console.error(`[remodex] ${(error && error.message) || "Failed to load the saved bridge pairing state."}`);
+    console.error(`[mobidex] ${(error && error.message) || "Failed to load the saved bridge pairing state."}`);
     process.exit(1);
   }
   const relaySession = resolveBridgeRelaySession(deviceState);
@@ -175,11 +175,11 @@ function startBridge({
     endpoint: config.codexEndpoint,
     env: process.env,
     appPath: config.codexAppPath,
-    logPrefix: "[remodex]",
+    logPrefix: "[mobidex]",
   });
   const voiceHandler = createVoiceHandler({
     sendCodexRequest,
-    logPrefix: "[remodex]",
+    logPrefix: "[mobidex]",
   });
   startBridgeStatusHeartbeat();
   publishBridgeStatus({
@@ -198,11 +198,11 @@ function startBridge({
       lastError: error.message,
     });
     if (config.codexEndpoint) {
-      console.error(`[remodex] Failed to connect to Codex endpoint: ${config.codexEndpoint}`);
+      console.error(`[mobidex] Failed to connect to Codex endpoint: ${config.codexEndpoint}`);
     } else {
-      console.error("[remodex] Failed to start `codex app-server`.");
-      console.error(`[remodex] Launch command: ${codex.describe()}`);
-      console.error("[remodex] Make sure the Codex CLI is installed and that the launcher works on this OS.");
+      console.error("[mobidex] Failed to start `codex app-server`.");
+      console.error(`[mobidex] Launch command: ${codex.describe()}`);
+      console.error("[mobidex] Make sure the Codex CLI is installed and that the launcher works on this OS.");
     }
     console.error(error.message);
     process.exit(1);
@@ -280,7 +280,7 @@ function startBridge({
       }
 
       if (hasRelayConnectionGoneStale(lastRelayActivityAt)) {
-        console.warn("[remodex] relay heartbeat stalled; forcing reconnect");
+        console.warn("[mobidex] relay heartbeat stalled; forcing reconnect");
         logConnectionStatus("disconnected");
         trackedSocket.terminate();
         return;
@@ -308,7 +308,7 @@ function startBridge({
       pid: process.pid,
       lastError: "",
     });
-    console.log(`[remodex] ${status}`);
+    console.log(`[mobidex] ${status}`);
   }
 
   // Retries the relay socket while preserving the active Codex process and session id.
@@ -1145,7 +1145,7 @@ function createMacOSBridgeWakeAssertion({
       });
 
       nextChild.on?.("error", (error) => {
-        consoleImpl.warn(`[remodex] Failed to hold the Mac awake while the bridge is active: ${error.message}`);
+        consoleImpl.warn(`[mobidex] Failed to hold the Mac awake while the bridge is active: ${error.message}`);
       });
       nextChild.on?.("exit", () => {
         if (child === nextChild) {
@@ -1156,7 +1156,7 @@ function createMacOSBridgeWakeAssertion({
       child = nextChild;
     } catch (error) {
       consoleImpl.warn(
-        `[remodex] Failed to start the bridge wake assertion: ${(error && error.message) || "unknown error"}`
+        `[mobidex] Failed to start the bridge wake assertion: ${(error && error.message) || "unknown error"}`
       );
       child = null;
     }

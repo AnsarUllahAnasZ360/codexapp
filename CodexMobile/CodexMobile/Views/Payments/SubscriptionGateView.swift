@@ -1,5 +1,5 @@
 // FILE: SubscriptionGateView.swift
-// Purpose: Locked shell shown before app access when Remodex Pro is required.
+// Purpose: Locked shell shown before app access when Mobidex Pro is required.
 // Layer: View
 // Exports: SubscriptionGateView
 // Depends on: SwiftUI, SubscriptionService, RevenueCatPaywallView
@@ -21,7 +21,7 @@ private let subscriptionGateFeatures: [SubscriptionGateFeature] = [
     .init(id: 4, icon: "point.3.connected.trianglepath.dotted", title: "Subagents", subtitle: "Delegate complex tasks to specialized sub-agents"),
     .init(id: 5, icon: "at", title: "$skills /cmds @files", subtitle: "Invoke skills, run slash commands, and mention files inline"),
     .init(id: 6, icon: "server.rack", title: "Hosted relay", subtitle: "You are paying for the product and the hosted path"),
-    .init(id: 7, icon: "heart", title: "Support development", subtitle: "Help keep Remodex independent and open source"),
+    .init(id: 7, icon: "heart", title: "Support development", subtitle: "Help keep Mobidex independent and open source"),
 ]
 
 struct SubscriptionGatePreviewPlan: Identifiable {
@@ -89,7 +89,7 @@ struct SubscriptionGateView: View {
                 )
 
             VStack(spacing: 10) {
-                Text("Remodex Pro Required")
+                Text("Mobidex Pro Required")
                     .font(AppFont.system(size: 24, weight: .bold))
                     .foregroundStyle(primaryTextColor)
                     .multilineTextAlignment(.center)
@@ -270,7 +270,7 @@ struct SubscriptionGateView: View {
     private var pricingPlaceholderRow: some View {
         HStack {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Remodex Pro")
+                Text("Mobidex Pro")
                     .font(AppFont.subheadline(weight: .semibold))
                 Text("$0.00 / month")
                     .font(AppFont.caption())
@@ -466,7 +466,7 @@ struct SubscriptionBootstrapFailureView: View {
                             .foregroundStyle(primaryTextColor)
                             .multilineTextAlignment(.center)
 
-                        Text("Remodex couldn’t confirm your Pro access yet. Check your connection, retry, or restore your App Store purchases.")
+                        Text("Mobidex couldn’t confirm your Pro access yet. Check your connection, retry, or restore your App Store purchases.")
                             .font(AppFont.caption())
                             .foregroundStyle(secondaryTextColor)
                             .multilineTextAlignment(.center)
@@ -564,7 +564,7 @@ private struct SubscriptionMacLoginInfoSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text("Remodex connects to Codex running on your Mac. Buying Pro unlocks the app, but you still need Codex already logged in on the Mac side.")
+                    Text("Mobidex connects to Codex running on your Mac. Buying Pro unlocks the app, but you still need Codex already logged in on the Mac side.")
                         .font(AppFont.body())
 
                     infoStep(
@@ -581,7 +581,7 @@ private struct SubscriptionMacLoginInfoSheet: View {
 
                     infoStep(
                         number: 3,
-                        title: "Run remodex up",
+                        title: "Run mobidex up",
                         body: "The bridge prints a QR code. Scan that QR from the iPhone app after you have Pro access."
                     )
                 }

@@ -126,7 +126,7 @@ test("sanitizeThreadHistoryImagesForRelay replaces inline history images with li
   });
   assert.deepEqual(content[1], {
     type: "image",
-    url: "remodex://history-image-elided",
+    url: "mobidex://history-image-elided",
   });
 });
 

@@ -40,10 +40,10 @@ final class UserMessageParserTests: XCTestCase {
     }
 
     func testParseDoesNotTreatBareTerminalHandleAsFileMention() {
-        let parsed = UserMessageParser.parse("@remodex cache hit")
+        let parsed = UserMessageParser.parse("@mobidex cache hit")
 
         XCTAssertEqual(parsed.mentions, [])
-        XCTAssertEqual(parsed.body, "@remodex cache hit")
+        XCTAssertEqual(parsed.body, "@mobidex cache hit")
     }
 
     func testParseKeepsFileMentionWithLineNumber() {

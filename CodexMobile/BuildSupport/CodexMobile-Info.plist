@@ -4,12 +4,12 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.emanueledipietro.CodexMobile.refresh</string>
+		<string>com.z360.mobidex.refresh</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Remodex</string>
+	<string>Mobidex</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,10 +28,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.emanueledipietro.CodexMobile.auth</string>
+			<string>com.z360.mobidex.auth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>phodex</string>
+				<string>$(PHODEX_CHATGPT_CALLBACK_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
@@ -40,7 +40,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Remodex needs camera access to let you take photos and attach them to your messages.</string>
+	<string>Mobidex needs camera access to let you take photos and attach them to your messages.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -49,23 +49,25 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>CodexMobile needs local network access to connect to your Codex app-server running on your Mac.</string>
+	<string>Mobidex needs local network access to connect to your Codex app-server running on your Mac.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Remodex needs microphone access to record voice notes for ChatGPT transcription.</string>
+	<string>Mobidex needs microphone access to record voice notes for ChatGPT transcription.</string>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_remodex-permission._tcp</string>
+		<string>_mobidex-permission._tcp</string>
 	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CodexMobile needs photo library access to let you attach images to your messages.</string>
+	<string>Mobidex needs photo library access to let you attach images to your messages.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Remodex needs photo library access to let you save rendered diagrams and attachments.</string>
+	<string>Mobidex needs photo library access to let you save rendered diagrams and attachments.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>PHODEX_CHATGPT_CALLBACK_SCHEME</key>
 	<string>$(PHODEX_CHATGPT_CALLBACK_SCHEME)</string>
 	<key>PHODEX_DEFAULT_RELAY_URL</key>
 	<string>$(PHODEX_DEFAULT_RELAY_URL)</string>
+	<key>MOBIDEX_DEFAULT_RELAY_URL</key>
+	<string>$(MOBIDEX_DEFAULT_RELAY_URL)</string>
 	<key>REVENUECAT_PUBLIC_API_KEY</key>
 	<string>$(REVENUECAT_PUBLIC_API_KEY)</string>
 	<key>REVENUECAT_ENTITLEMENT_NAME</key>

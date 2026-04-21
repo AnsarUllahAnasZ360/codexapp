@@ -11,7 +11,7 @@ const path = require("path");
 const { version } = require("../package.json");
 const { main } = require("../bin/remodex");
 
-test("remodex --version prints the package version", () => {
+test("mobidex --version prints the package version", () => {
   const cliPath = path.join(__dirname, "..", "bin", "remodex.js");
   const output = execFileSync(process.execPath, [cliPath, "--version"], {
     encoding: "utf8",
@@ -57,11 +57,11 @@ test("remodex restart reuses the macOS service start flow", async () => {
     ["start-service", { waitForPairing: false }],
   ]);
   assert.deepEqual(messages, [
-    "[remodex] macOS bridge service restarted.",
+    "[mobidex] macOS bridge service restarted.",
   ]);
 });
 
-test("remodex status --json exposes daemon metadata for companion apps", async () => {
+test("mobidex status --json exposes daemon metadata for companion apps", async () => {
   const writes = [];
   const originalWrite = process.stdout.write;
 

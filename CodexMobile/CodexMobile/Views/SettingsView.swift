@@ -313,7 +313,7 @@ private struct SettingsSubscriptionCard: View {
     @State private var isPresentingPaywall = false
 
     var body: some View {
-        SettingsCard(title: "Remodex Pro") {
+        SettingsCard(title: "Mobidex Pro") {
             HStack {
                 Text("Status")
                 Spacer()
@@ -679,7 +679,7 @@ private struct SettingsBridgeVersionCard: View {
         }
 
         if installedVersion.compare(latestVersion, options: .numeric) == .orderedAscending {
-            return "A newer Remodex package is available on npm."
+            return "A newer Mobidex package is available on npm."
         }
 
         return "This Mac is running a different build than the current npm latest."
@@ -800,7 +800,7 @@ private struct SettingsAboutCard: View {
                 isShowingAbout = true
             } label: {
                 settingsAccessoryRow(
-                    title: "How Remodex Works",
+                    title: "How Mobidex Works",
                     leading: {
                         Image(systemName: "info.circle")
                             .font(AppFont.subheadline(weight: .medium))
@@ -811,14 +811,14 @@ private struct SettingsAboutCard: View {
 
             Button {
                 HapticFeedback.shared.triggerImpactFeedback(style: .light)
-                if let url = URL(string: "https://x.com/emanueledpt") {
+                if let url = URL(string: "https://github.com/AnsarUllahAnasZ360/codexapp") {
                     UIApplication.shared.open(url)
                 }
             } label: {
                 settingsAccessoryRow(
-                    title: "Chat & Support",
+                    title: "Source & Support",
                     leading: {
-                        Image("x-icon")
+                        Image("GitHub_Invertocat_Black")
                             .renderingMode(.template)
                             .resizable()
                             .scaledToFit()
@@ -857,7 +857,7 @@ private struct SettingsAboutCard: View {
             .buttonStyle(.plain)
         }
         .fullScreenCover(isPresented: $isShowingAbout) {
-            AboutRemodexView()
+            AboutMobidexView()
         }
     }
 

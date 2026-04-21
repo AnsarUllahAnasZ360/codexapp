@@ -52,10 +52,10 @@ test("ensureCodexCLI installs Codex when it is missing", () => {
     true
   );
   assert.deepEqual(messages, [
-    "[remodex] Checking Codex CLI...",
-    "[remodex] Codex CLI not found.",
-    "[remodex] Installing Codex CLI via npm (@openai/codex@latest)...",
-    "[remodex] Codex CLI installed (0.120.0).",
+    "[mobidex] Checking Codex CLI...",
+    "[mobidex] Codex CLI not found.",
+    "[mobidex] Installing Codex CLI via npm (@openai/codex@latest)...",
+    "[mobidex] Codex CLI installed (0.120.0).",
   ]);
 });
 
@@ -90,10 +90,10 @@ test("ensureCodexCLI updates Codex when it is already installed", () => {
     versionAfter: "0.120.0",
   });
   assert.deepEqual(messages, [
-    "[remodex] Checking Codex CLI...",
-    "[remodex] Codex CLI found (0.118.0).",
-    "[remodex] Updating Codex CLI via npm (@openai/codex@latest)...",
-    "[remodex] Codex CLI updated (0.120.0).",
+    "[mobidex] Checking Codex CLI...",
+    "[mobidex] Codex CLI found (0.118.0).",
+    "[mobidex] Updating Codex CLI via npm (@openai/codex@latest)...",
+    "[mobidex] Codex CLI updated (0.120.0).",
   ]);
 });
 
@@ -124,11 +124,12 @@ test("ensureCodexCLI stops gracefully when npm is unavailable", () => {
     versionAfter: null,
   });
   assert.deepEqual(warnings, [
-    "[remodex] npm is unavailable, so Remodex could not install or update the Codex CLI automatically.",
+    "[mobidex] npm is unavailable, so Mobidex could not install or update the Codex CLI automatically.",
   ]);
 });
 
 test("shouldSkipCodexBootstrap respects the opt-out env flag", () => {
+  assert.equal(shouldSkipCodexBootstrap({ MOBIDEX_SKIP_CODEX_BOOTSTRAP: "1" }), true);
   assert.equal(shouldSkipCodexBootstrap({ REMODEX_SKIP_CODEX_BOOTSTRAP: "1" }), true);
   assert.equal(shouldSkipCodexBootstrap({ REMODEX_SKIP_CODEX_BOOTSTRAP: "true" }), true);
   assert.equal(shouldSkipCodexBootstrap({ REMODEX_SKIP_CODEX_BOOTSTRAP: "0" }), false);

@@ -8,7 +8,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const DEFAULT_STATE_DIR_NAME = ".remodex";
+const DEFAULT_STATE_DIR_NAME = ".mobidex";
 const DAEMON_CONFIG_FILE = "daemon-config.json";
 const PAIRING_SESSION_FILE = "pairing-session.json";
 const BRIDGE_STATUS_FILE = "bridge-status.json";
@@ -16,26 +16,27 @@ const LOGS_DIR = "logs";
 const BRIDGE_STDOUT_LOG_FILE = "bridge.stdout.log";
 const BRIDGE_STDERR_LOG_FILE = "bridge.stderr.log";
 
-// Reuses the existing Remodex state root so daemon mode keeps the same local-first storage model.
-function resolveRemodexStateDir({ env = process.env, osImpl = os } = {}) {
-  return normalizeNonEmptyString(env.REMODEX_DEVICE_STATE_DIR)
+// Uses a Mobidex-owned state root while still honoring legacy Remodex overrides.
+function resolveMobidexStateDir({ env = process.env, osImpl = os } = {}) {
+  return normalizeNonEmptyString(env.MOBIDEX_DEVICE_STATE_DIR)
+    || normalizeNonEmptyString(env.REMODEX_DEVICE_STATE_DIR)
     || path.join(osImpl.homedir(), DEFAULT_STATE_DIR_NAME);
 }
 
 function resolveDaemonConfigPath(options = {}) {
-  return path.join(resolveRemodexStateDir(options), DAEMON_CONFIG_FILE);
+  return path.join(resolveMobidexStateDir(options), DAEMON_CONFIG_FILE);
 }
 
 function resolvePairingSessionPath(options = {}) {
-  return path.join(resolveRemodexStateDir(options), PAIRING_SESSION_FILE);
+  return path.join(resolveMobidexStateDir(options), PAIRING_SESSION_FILE);
 }
 
 function resolveBridgeStatusPath(options = {}) {
-  return path.join(resolveRemodexStateDir(options), BRIDGE_STATUS_FILE);
+  return path.join(resolveMobidexStateDir(options), BRIDGE_STATUS_FILE);
 }
 
 function resolveBridgeLogsDir(options = {}) {
-  return path.join(resolveRemodexStateDir(options), LOGS_DIR);
+  return path.join(resolveMobidexStateDir(options), LOGS_DIR);
 }
 
 function resolveBridgeStdoutLogPath(options = {}) {
@@ -73,7 +74,7 @@ function clearPairingSession({ fsImpl = fs, ...options } = {}) {
   removeFile(resolvePairingSessionPath(options), fsImpl);
 }
 
-// Captures the last known service heartbeat so `remodex status` does not depend on launchctl output alone.
+// Captures the last known service heartbeat so `mobidex status` does not depend on launchctl output alone.
 function writeBridgeStatus(status, { now = () => Date.now(), ...options } = {}) {
   writeJsonFile(resolveBridgeStatusPath(options), {
     ...status,
@@ -89,11 +90,11 @@ function clearBridgeStatus({ fsImpl = fs, ...options } = {}) {
   removeFile(resolveBridgeStatusPath(options), fsImpl);
 }
 
-function ensureRemodexStateDir({ fsImpl = fs, ...options } = {}) {
-  fsImpl.mkdirSync(resolveRemodexStateDir(options), { recursive: true });
+function ensureMobidexStateDir({ fsImpl = fs, ...options } = {}) {
+  fsImpl.mkdirSync(resolveMobidexStateDir(options), { recursive: true });
 }
 
-function ensureRemodexLogsDir({ fsImpl = fs, ...options } = {}) {
+function ensureMobidexLogsDir({ fsImpl = fs, ...options } = {}) {
   fsImpl.mkdirSync(resolveBridgeLogsDir(options), { recursive: true });
 }
 
@@ -135,8 +136,8 @@ function normalizeNonEmptyString(value) {
 module.exports = {
   clearBridgeStatus,
   clearPairingSession,
-  ensureRemodexLogsDir,
-  ensureRemodexStateDir,
+  ensureMobidexLogsDir,
+  ensureMobidexStateDir,
   readBridgeStatus,
   readDaemonConfig,
   readPairingSession,
@@ -146,7 +147,7 @@ module.exports = {
   resolveBridgeStdoutLogPath,
   resolveDaemonConfigPath,
   resolvePairingSessionPath,
-  resolveRemodexStateDir,
+  resolveMobidexStateDir,
   writeBridgeStatus,
   writeDaemonConfig,
   writePairingSession,

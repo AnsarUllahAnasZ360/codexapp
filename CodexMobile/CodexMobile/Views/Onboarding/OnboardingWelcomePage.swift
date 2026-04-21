@@ -10,7 +10,6 @@ struct OnboardingWelcomePage: View {
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                // Hero image — fit full width, pinned to top
                 Image("three")
                     .resizable()
                     .scaledToFit()
@@ -18,7 +17,6 @@ struct OnboardingWelcomePage: View {
                     .clipped()
                     .ignoresSafeArea()
 
-                // Gradient fade to black — subtle, only at the bottom
                 LinearGradient(
                     stops: [
                         .init(color: .clear, location: 0.45),
@@ -30,7 +28,6 @@ struct OnboardingWelcomePage: View {
                 )
                 .ignoresSafeArea()
 
-                // Content overlaid at bottom
                 VStack(spacing: 24) {
                     Image("AppLogo")
                         .resizable()
@@ -50,7 +47,7 @@ struct OnboardingWelcomePage: View {
                         )
 
                     VStack(spacing: 8) {
-                        Text("Remodex")
+                        Text("Mobidex")
                             .font(AppFont.system(size: 32, weight: .bold))
 
                         Text("Control Codex from your iPhone.")

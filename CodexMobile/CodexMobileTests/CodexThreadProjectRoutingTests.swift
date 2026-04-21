@@ -16,7 +16,7 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
         let originalThread = CodexThread(
             id: "thread-1",
             title: "Source",
-            cwd: "/tmp/remodex-local"
+            cwd: "/tmp/mobidex-local"
         )
         service.upsertThread(originalThread)
         service.activeThreadId = "thread-1"
@@ -33,15 +33,15 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
 
         let movedThread = try await service.moveThreadToProjectPath(
             threadId: "thread-1",
-            projectPath: "/tmp/remodex-worktree"
+            projectPath: "/tmp/mobidex-worktree"
         )
 
         XCTAssertEqual(resumeRequests.count, 1)
         XCTAssertEqual(resumeRequests.first?["threadId"]?.stringValue, "thread-1")
-        XCTAssertEqual(resumeRequests.first?["cwd"]?.stringValue, "/tmp/remodex-worktree")
-        XCTAssertEqual(movedThread.gitWorkingDirectory, "/tmp/remodex-worktree")
-        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/remodex-worktree")
-        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/remodex-worktree")
+        XCTAssertEqual(resumeRequests.first?["cwd"]?.stringValue, "/tmp/mobidex-worktree")
+        XCTAssertEqual(movedThread.gitWorkingDirectory, "/tmp/mobidex-worktree")
+        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/mobidex-worktree")
+        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/mobidex-worktree")
         XCTAssertEqual(service.activeThreadId, "thread-1")
         XCTAssertFalse(service.resumedThreadIDs.contains("thread-1"))
     }
@@ -52,7 +52,7 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-local"
+                cwd: "/tmp/mobidex-local"
             )
         )
         service.activeThreadId = "thread-1"
@@ -66,31 +66,31 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
 
         _ = try await service.moveThreadToProjectPath(
             threadId: "thread-1",
-            projectPath: "/tmp/remodex-worktree"
+            projectPath: "/tmp/mobidex-worktree"
         )
 
         service.upsertThread(
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-local"
+                cwd: "/tmp/mobidex-local"
             ),
             treatAsServerState: true
         )
 
-        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/remodex-worktree")
-        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/remodex-worktree")
+        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/mobidex-worktree")
+        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/mobidex-worktree")
 
         service.upsertThread(
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-worktree"
+                cwd: "/tmp/mobidex-worktree"
             ),
             treatAsServerState: true
         )
 
-        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/remodex-worktree")
+        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/mobidex-worktree")
         XCTAssertNil(service.currentAuthoritativeProjectPath(for: "thread-1"))
     }
 
@@ -100,37 +100,37 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-local"
+                cwd: "/tmp/mobidex-local"
             )
         )
 
         service.beginAuthoritativeProjectPathTransition(
             threadId: "thread-1",
-            projectPath: "/tmp/remodex-worktree"
+            projectPath: "/tmp/mobidex-worktree"
         )
 
         service.upsertThread(
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-local"
+                cwd: "/tmp/mobidex-local"
             ),
             treatAsServerState: true
         )
 
-        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/remodex-worktree")
-        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/remodex-worktree")
+        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/mobidex-worktree")
+        XCTAssertEqual(service.currentAuthoritativeProjectPath(for: "thread-1"), "/tmp/mobidex-worktree")
 
         service.upsertThread(
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-worktree"
+                cwd: "/tmp/mobidex-worktree"
             ),
             treatAsServerState: true
         )
 
-        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/remodex-worktree")
+        XCTAssertEqual(service.thread(for: "thread-1")?.gitWorkingDirectory, "/tmp/mobidex-worktree")
         XCTAssertNil(service.currentAuthoritativeProjectPath(for: "thread-1"))
     }
 
@@ -140,7 +140,7 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Source",
-                cwd: "/tmp/remodex-local"
+                cwd: "/tmp/mobidex-local"
             )
         )
 
@@ -162,11 +162,11 @@ final class CodexThreadProjectRoutingTests: XCTestCase {
             )
         }
 
-        let worktreePath = "/Users/me/.codex/worktrees/a1b2/remodex"
+        let worktreePath = "/Users/me/.codex/worktrees/a1b2/mobidex"
         _ = try await service.moveThreadToProjectPath(threadId: "thread-1", projectPath: worktreePath)
-        _ = try await service.moveThreadToProjectPath(threadId: "thread-1", projectPath: "/tmp/remodex-local")
+        _ = try await service.moveThreadToProjectPath(threadId: "thread-1", projectPath: "/tmp/mobidex-local")
 
-        XCTAssertEqual(resumeResponses, [worktreePath, "/tmp/remodex-local"])
+        XCTAssertEqual(resumeResponses, [worktreePath, "/tmp/mobidex-local"])
         XCTAssertEqual(service.associatedManagedWorktreePath(for: "thread-1"), worktreePath)
     }
 

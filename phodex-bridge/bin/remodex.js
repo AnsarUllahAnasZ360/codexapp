@@ -98,7 +98,7 @@ async function main({
         plistPath: result?.plistPath,
         pairingSession: result?.pairingSession,
       },
-      message: "[remodex] macOS bridge service is running.",
+      message: "[mobidex] macOS bridge service is running.",
       jsonOutput,
       consoleImpl,
     });
@@ -122,7 +122,7 @@ async function main({
         plistPath: result?.plistPath,
         pairingSession: result?.pairingSession,
       },
-      message: "[remodex] macOS bridge service restarted.",
+      message: "[mobidex] macOS bridge service restarted.",
       jsonOutput,
       consoleImpl,
     });
@@ -141,7 +141,7 @@ async function main({
         ok: true,
         currentVersion: version,
       },
-      message: "[remodex] macOS bridge service stopped.",
+      message: "[mobidex] macOS bridge service stopped.",
       jsonOutput,
       consoleImpl,
     });
@@ -175,7 +175,7 @@ async function main({
             currentVersion: version,
             platform: "darwin",
           },
-          message: "[remodex] Stopped the macOS bridge service and cleared the saved pairing state. Run `remodex up` to pair again.",
+          message: "[mobidex] Stopped the macOS bridge service and cleared the saved pairing state. Run `mobidex up` to pair again.",
           jsonOutput,
           consoleImpl,
         });
@@ -187,13 +187,13 @@ async function main({
             currentVersion: version,
             platform,
           },
-          message: "[remodex] Cleared the saved pairing state. Run `remodex up` to pair again.",
+          message: "[mobidex] Cleared the saved pairing state. Run `mobidex up` to pair again.",
           jsonOutput,
           consoleImpl,
         });
       }
     } catch (error) {
-      consoleImpl.error(`[remodex] ${(error && error.message) || "Failed to clear the saved pairing state."}`);
+      consoleImpl.error(`[mobidex] ${(error && error.message) || "Failed to clear the saved pairing state."}`);
       exitImpl(1);
     }
     return;
@@ -209,12 +209,12 @@ async function main({
           threadId: state.threadId,
           source: state.source || "unknown",
         },
-        message: `[remodex] Opened last active thread: ${state.threadId} (${state.source || "unknown"})`,
+        message: `[mobidex] Opened last active thread: ${state.threadId} (${state.source || "unknown"})`,
         jsonOutput,
         consoleImpl,
       });
     } catch (error) {
-      consoleImpl.error(`[remodex] ${(error && error.message) || "Failed to reopen the last thread."}`);
+      consoleImpl.error(`[mobidex] ${(error && error.message) || "Failed to reopen the last thread."}`);
       exitImpl(1);
     }
     return;
@@ -224,7 +224,7 @@ async function main({
     try {
       deps.watchThreadRollout(watchThreadId);
     } catch (error) {
-      consoleImpl.error(`[remodex] ${(error && error.message) || "Failed to watch the thread rollout."}`);
+      consoleImpl.error(`[mobidex] ${(error && error.message) || "Failed to watch the thread rollout."}`);
       exitImpl(1);
     }
     return;
@@ -232,8 +232,8 @@ async function main({
 
   consoleImpl.error(`Unknown command: ${command}`);
   consoleImpl.error(
-    "Usage: remodex up | remodex run | remodex start | remodex restart | remodex stop | remodex status | "
-    + "remodex reset-pairing | remodex resume | remodex watch [threadId] | remodex --version | "
+    "Usage: mobidex up | mobidex run | mobidex start | mobidex restart | mobidex stop | mobidex status | "
+    + "mobidex reset-pairing | mobidex resume | mobidex watch [threadId] | mobidex --version | "
     + "append --json to start/restart/stop/status/reset-pairing/resume for machine-readable output"
   );
   exitImpl(1);
@@ -300,7 +300,7 @@ function assertMacOSCommand(name, {
     return;
   }
 
-  consoleImpl.error(`[remodex] \`${name}\` is only available on macOS. Use \`remodex up\` or \`remodex run\` for the foreground bridge on this OS.`);
+  consoleImpl.error(`[mobidex] \`${name}\` is only available on macOS. Use \`mobidex up\` or \`mobidex run\` for the foreground bridge on this OS.`);
   exitImpl(1);
 }
 

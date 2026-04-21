@@ -788,7 +788,7 @@ async function gitWorktreePathByBranch(cwd, options = {}) {
 }
 
 async function stashChangesForWorktreeHandoff(cwd, pathspecArgs = []) {
-  const stashLabel = `remodex-worktree-handoff-${randomBytes(6).toString("hex")}`;
+  const stashLabel = `mobidex-worktree-handoff-${randomBytes(6).toString("hex")}`;
   const output = await git(
     cwd,
     "stash",
@@ -866,7 +866,7 @@ async function applyCopiedLocalChangesToWorktree(cwd, patch) {
     return;
   }
 
-  const patchFilePath = path.join(os.tmpdir(), `remodex-worktree-copy-${randomBytes(6).toString("hex")}.patch`);
+  const patchFilePath = path.join(os.tmpdir(), `mobidex-worktree-copy-${randomBytes(6).toString("hex")}.patch`);
   fs.writeFileSync(patchFilePath, ensureTrailingNewline(patch), "utf8");
 
   try {
@@ -1008,10 +1008,10 @@ function normalizeCreatedBranchName(rawName) {
     .map((segment) => segment.trim().replace(/\s+/g, "-"))
     .join("/");
 
-  if (normalized.startsWith("remodex/")) {
+  if (normalized.startsWith("mobidex/")) {
     return normalized;
   }
-  return `remodex/${normalized}`;
+  return `mobidex/${normalized}`;
 }
 
 function resolveBaseBranchName(rawBaseBranch, fallbackBranch) {

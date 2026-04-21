@@ -20,9 +20,9 @@ final class QRScannerPairingValidatorTests: XCTestCase {
             return XCTFail("Expected a bridge update prompt for mismatched QR versions.")
         }
 
-        XCTAssertEqual(prompt.title, "Update Remodex on your Mac before scanning")
-        XCTAssertEqual(prompt.command, "npm install -g remodex@latest")
-        XCTAssertTrue(prompt.message.contains("different Remodex npm version"))
+        XCTAssertEqual(prompt.title, "Update Mobidex on your Mac before scanning")
+        XCTAssertEqual(prompt.command, "npm install -g mobidex@latest")
+        XCTAssertTrue(prompt.message.contains("different Mobidex npm version"))
     }
 
     func testLegacyBridgePayloadRequiresBridgeUpdateBeforeScanning() {
@@ -34,8 +34,8 @@ final class QRScannerPairingValidatorTests: XCTestCase {
             return XCTFail("Expected a bridge update prompt for legacy pairing payloads.")
         }
 
-        XCTAssertEqual(prompt.command, "npm install -g remodex@latest")
-        XCTAssertTrue(prompt.message.contains("older Remodex bridge"))
+        XCTAssertEqual(prompt.command, "npm install -g mobidex@latest")
+        XCTAssertTrue(prompt.message.contains("older Mobidex bridge"))
     }
 
     func testValidPayloadReturnsSuccess() {

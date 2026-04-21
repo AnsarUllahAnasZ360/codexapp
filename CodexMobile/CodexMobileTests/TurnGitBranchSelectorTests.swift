@@ -1,5 +1,5 @@
 // FILE: TurnGitBranchSelectorTests.swift
-// Purpose: Verifies new branch creation names normalize toward the remodex/ prefix without double-prefixing.
+// Purpose: Verifies new branch creation names normalize toward the mobidex/ prefix without double-prefixing.
 // Layer: Unit Test
 // Exports: TurnGitBranchSelectorTests
 // Depends on: XCTest, CodexMobile
@@ -8,22 +8,22 @@ import XCTest
 @testable import CodexMobile
 
 final class TurnGitBranchSelectorTests: XCTestCase {
-    func testNormalizesCreatedBranchNamesTowardRemodexPrefix() {
-        XCTAssertEqual(remodexNormalizedCreatedBranchName("foo"), "remodex/foo")
-        XCTAssertEqual(remodexNormalizedCreatedBranchName("remodex/foo"), "remodex/foo")
-        XCTAssertEqual(remodexNormalizedCreatedBranchName("  foo  "), "remodex/foo")
+    func testNormalizesCreatedBranchNamesTowardMobidexPrefix() {
+        XCTAssertEqual(mobidexNormalizedCreatedBranchName("foo"), "mobidex/foo")
+        XCTAssertEqual(mobidexNormalizedCreatedBranchName("mobidex/foo"), "mobidex/foo")
+        XCTAssertEqual(mobidexNormalizedCreatedBranchName("  foo  "), "mobidex/foo")
     }
 
     func testNormalizesEmptyBranchNamesToEmptyString() {
-        XCTAssertEqual(remodexNormalizedCreatedBranchName("   "), "")
+        XCTAssertEqual(mobidexNormalizedCreatedBranchName("   "), "")
     }
 
     func testCurrentBranchSelectionDisablesCheckedOutElsewhereRowsWhenWorktreePathIsMissing() {
         XCTAssertTrue(
-            remodexCurrentBranchSelectionIsDisabled(
-                branch: "remodex/feature-a",
+            mobidexCurrentBranchSelectionIsDisabled(
+                branch: "mobidex/feature-a",
                 currentBranch: "main",
-                gitBranchesCheckedOutElsewhere: ["remodex/feature-a"],
+                gitBranchesCheckedOutElsewhere: ["mobidex/feature-a"],
                 gitWorktreePathsByBranch: [:],
                 allowsSelectingCurrentBranch: true
             )
@@ -32,11 +32,11 @@ final class TurnGitBranchSelectorTests: XCTestCase {
 
     func testCurrentBranchSelectionKeepsCheckedOutElsewhereRowsEnabledWhenWorktreePathExists() {
         XCTAssertFalse(
-            remodexCurrentBranchSelectionIsDisabled(
-                branch: "remodex/feature-a",
+            mobidexCurrentBranchSelectionIsDisabled(
+                branch: "mobidex/feature-a",
                 currentBranch: "main",
-                gitBranchesCheckedOutElsewhere: ["remodex/feature-a"],
-                gitWorktreePathsByBranch: ["remodex/feature-a": "/tmp/remodex-feature-a"],
+                gitBranchesCheckedOutElsewhere: ["mobidex/feature-a"],
+                gitWorktreePathsByBranch: ["mobidex/feature-a": "/tmp/mobidex-feature-a"],
                 allowsSelectingCurrentBranch: true
             )
         )
@@ -44,18 +44,18 @@ final class TurnGitBranchSelectorTests: XCTestCase {
 
     func testSelectableDefaultBranchReturnsNilWhenDefaultIsNotLocal() {
         XCTAssertNil(
-            remodexSelectableDefaultBranch(
+            mobidexSelectableDefaultBranch(
                 defaultBranch: "main",
-                availableGitBranchTargets: ["remodex/feature-a"]
+                availableGitBranchTargets: ["mobidex/feature-a"]
             )
         )
     }
 
     func testSelectableDefaultBranchReturnsDefaultWhenItIsLocal() {
         XCTAssertEqual(
-            remodexSelectableDefaultBranch(
+            mobidexSelectableDefaultBranch(
                 defaultBranch: "main",
-                availableGitBranchTargets: ["main", "remodex/feature-a"]
+                availableGitBranchTargets: ["main", "mobidex/feature-a"]
             ),
             "main"
         )

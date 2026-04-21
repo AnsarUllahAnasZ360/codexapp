@@ -1,7 +1,7 @@
 // FILE: macos-launch-agent.js
-// Purpose: Owns macOS-only launchd install/start/stop/status helpers for the background Remodex bridge.
+// Purpose: Owns macOS-only launchd install/start/stop/status helpers for the background Mobidex bridge.
 // Layer: CLI helper
-// Exports: start/stop/status helpers plus the launchd service runner used by `remodex up`.
+// Exports: start/stop/status helpers plus the launchd service runner used by `mobidex up`.
 // Depends on: child_process, fs, os, path, ./bridge, ./daemon-state, ./codex-desktop-refresher, ./qr, ./secure-device-state
 
 const { execFileSync } = require("child_process");
@@ -15,20 +15,20 @@ const { resetBridgeDeviceState } = require("./secure-device-state");
 const {
   clearBridgeStatus,
   clearPairingSession,
-  ensureRemodexLogsDir,
-  ensureRemodexStateDir,
+  ensureMobidexLogsDir,
+  ensureMobidexStateDir,
   readBridgeStatus,
   readDaemonConfig,
   readPairingSession,
   resolveBridgeStderrLogPath,
   resolveBridgeStdoutLogPath,
-  resolveRemodexStateDir,
+  resolveMobidexStateDir,
   writeBridgeStatus,
   writeDaemonConfig,
   writePairingSession,
 } = require("./daemon-state");
 
-const SERVICE_LABEL = "com.remodex.bridge";
+const SERVICE_LABEL = "com.z360.mobidex.bridge";
 const DEFAULT_PAIRING_WAIT_TIMEOUT_MS = 10_000;
 const DEFAULT_PAIRING_WAIT_INTERVAL_MS = 200;
 
@@ -46,7 +46,7 @@ function runMacOSBridgeService({ env = process.env } = {}) {
       pid: process.pid,
       lastError: message,
     }, { env });
-    console.error(`[remodex] ${message}`);
+    console.error(`[mobidex] ${message}`);
     return;
   }
 
@@ -73,7 +73,7 @@ async function startMacOSBridgeService({
   execFileSyncImpl = execFileSync,
   osImpl = os,
   nodePath = process.execPath,
-  cliPath = path.resolve(__dirname, "..", "bin", "remodex.js"),
+  cliPath = path.resolve(__dirname, "..", "bin", "mobidex.js"),
   waitForPairing = false,
   pairingTimeoutMs = DEFAULT_PAIRING_WAIT_TIMEOUT_MS,
   pairingPollIntervalMs = DEFAULT_PAIRING_WAIT_INTERVAL_MS,
@@ -86,8 +86,8 @@ async function startMacOSBridgeService({
   writeDaemonConfig(config, { env, fsImpl });
   clearPairingSession({ env, fsImpl });
   clearBridgeStatus({ env, fsImpl });
-  ensureRemodexStateDir({ env, fsImpl, osImpl });
-  ensureRemodexLogsDir({ env, fsImpl, osImpl });
+  ensureMobidexStateDir({ env, fsImpl, osImpl });
+  ensureMobidexLogsDir({ env, fsImpl, osImpl });
 
   const plistPath = writeLaunchAgentPlist({
     env,
@@ -183,15 +183,15 @@ function printMacOSBridgeServiceStatus(options = {}) {
   const bridgeState = status.bridgeStatus?.state || "unknown";
   const connectionStatus = status.bridgeStatus?.connectionStatus || "unknown";
   const pairingCreatedAt = status.pairingSession?.createdAt || "none";
-  console.log(`[remodex] Service label: ${status.label}`);
-  console.log(`[remodex] Installed: ${status.installed ? "yes" : "no"}`);
-  console.log(`[remodex] Launchd loaded: ${status.launchdLoaded ? "yes" : "no"}`);
-  console.log(`[remodex] PID: ${status.launchdPid || status.bridgeStatus?.pid || "unknown"}`);
-  console.log(`[remodex] Bridge state: ${bridgeState}`);
-  console.log(`[remodex] Connection: ${connectionStatus}`);
-  console.log(`[remodex] Pairing payload: ${pairingCreatedAt}`);
-  console.log(`[remodex] Stdout log: ${status.stdoutLogPath}`);
-  console.log(`[remodex] Stderr log: ${status.stderrLogPath}`);
+  console.log(`[mobidex] Service label: ${status.label}`);
+  console.log(`[mobidex] Installed: ${status.installed ? "yes" : "no"}`);
+  console.log(`[mobidex] Launchd loaded: ${status.launchdLoaded ? "yes" : "no"}`);
+  console.log(`[mobidex] PID: ${status.launchdPid || status.bridgeStatus?.pid || "unknown"}`);
+  console.log(`[mobidex] Bridge state: ${bridgeState}`);
+  console.log(`[mobidex] Connection: ${connectionStatus}`);
+  console.log(`[mobidex] Pairing payload: ${pairingCreatedAt}`);
+  console.log(`[mobidex] Stdout log: ${status.stdoutLogPath}`);
+  console.log(`[mobidex] Stderr log: ${status.stderrLogPath}`);
 }
 
 function printMacOSBridgePairingQr({ pairingSession = null, env = process.env, fsImpl = fs } = {}) {
@@ -210,10 +210,10 @@ function writeLaunchAgentPlist({
   fsImpl = fs,
   osImpl = os,
   nodePath = process.execPath,
-  cliPath = path.resolve(__dirname, "..", "bin", "remodex.js"),
+  cliPath = path.resolve(__dirname, "..", "bin", "mobidex.js"),
 } = {}) {
   const plistPath = resolveLaunchAgentPlistPath({ env, osImpl });
-  const stateDir = resolveRemodexStateDir({ env, osImpl });
+  const stateDir = resolveMobidexStateDir({ env, osImpl });
   const stdoutLogPath = resolveBridgeStdoutLogPath({ env, osImpl });
   const stderrLogPath = resolveBridgeStderrLogPath({ env, osImpl });
   const homeDir = env.HOME || osImpl.homedir();
@@ -269,6 +269,8 @@ function buildLaunchAgentPlist({
     <key>PATH</key>
     <string>${escapeXml(pathEnv)}</string>
     <key>REMODEX_DEVICE_STATE_DIR</key>
+    <string>${escapeXml(stateDir)}</string>
+    <key>MOBIDEX_DEVICE_STATE_DIR</key>
     <string>${escapeXml(stateDir)}</string>
   </dict>
   <key>StandardOutPath</key>
@@ -392,7 +394,7 @@ function assertRelayConfigured(config) {
   if (typeof config?.relayUrl === "string" && config.relayUrl.trim()) {
     return;
   }
-  throw new Error("No relay URL configured. Run ./run-local-remodex.sh or set REMODEX_RELAY before enabling the macOS bridge service.");
+  throw new Error("No relay URL configured. Run `mobidex up` from a published package or set MOBIDEX_RELAY before enabling the macOS bridge service.");
 }
 
 function launchAgentDomain(env) {

@@ -13,7 +13,7 @@ struct OpenSourceBadge: View {
         case dark
     }
 
-    private let repoURL = URL(string: "https://github.com/Emanuele-web04/remodex")!
+    private let repoURL = URL(string: "https://github.com/AnsarUllahAnasZ360/codexapp")!
 
     var body: some View {
         Link(destination: repoURL) {

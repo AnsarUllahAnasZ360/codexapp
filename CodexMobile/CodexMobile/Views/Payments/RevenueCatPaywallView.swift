@@ -153,7 +153,7 @@ struct RevenueCatPaywallView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 
 
-            Text("Unlock Remodex Pro")
+            Text("Unlock Mobidex Pro")
                 .font(AppFont.system(size: 24, weight: .bold))
 
             Text("Everything runs on your Mac. Your phone is the remote.")
@@ -446,7 +446,7 @@ struct RevenueCatPaywallView: View {
     }
 
     private var selectedCallToActionTitle: String {
-        selectedPlan?.callToActionTitle ?? "Unlock Remodex Pro"
+        selectedPlan?.callToActionTitle ?? "Unlock Mobidex Pro"
     }
 
     private var selectedFooterDescription: String {
@@ -490,7 +490,7 @@ struct RevenueCatPaywallView: View {
                 periodLabel: "month",
                 termsDescription: "$3.99 / month",
                 isBestValue: false,
-                callToActionTitle: "Unlock Remodex Pro",
+                callToActionTitle: "Unlock Mobidex Pro",
                 footerDescription: "Recurring billing. Cancel anytime."
             ),
             RevenueCatPaywallPreviewPlan(
@@ -500,7 +500,7 @@ struct RevenueCatPaywallView: View {
                 periodLabel: "year",
                 termsDescription: "$29.99 for 1 year",
                 isBestValue: true,
-                callToActionTitle: "Unlock Remodex Pro",
+                callToActionTitle: "Unlock Mobidex Pro",
                 footerDescription: "Recurring billing. Cancel anytime."
             ),
             RevenueCatPaywallPreviewPlan(
@@ -529,7 +529,7 @@ struct RevenueCatPaywallView: View {
                 periodLabel: "month",
                 termsDescription: "$3.99 / month",
                 isBestValue: false,
-                callToActionTitle: "Unlock Remodex Pro",
+                callToActionTitle: "Unlock Mobidex Pro",
                 footerDescription: "Recurring billing. Cancel anytime."
             ),
             RevenueCatPaywallPreviewPlan(
@@ -539,7 +539,7 @@ struct RevenueCatPaywallView: View {
                 periodLabel: "year",
                 termsDescription: "$29.99 for 1 year",
                 isBestValue: true,
-                callToActionTitle: "Unlock Remodex Pro",
+                callToActionTitle: "Unlock Mobidex Pro",
                 footerDescription: "Recurring billing. Cancel anytime."
             ),
             RevenueCatPaywallPreviewPlan(

@@ -165,7 +165,7 @@ final class TurnMessageCachesTests: XCTestCase {
 
     func testPerFileDiffParserMergesMultipleSnapshotsForSameFile() {
         let bodyText = """
-        Path: /Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
+        Path: /Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
         Kind: update
         Totals: +1 -0
 
@@ -185,7 +185,7 @@ final class TurnMessageCachesTests: XCTestCase {
         """
         let entries = [
             TurnFileChangeSummaryEntry(
-                path: "/Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift",
+                path: "/Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift",
                 additions: 1,
                 deletions: 0,
                 action: .edited
@@ -209,7 +209,7 @@ final class TurnMessageCachesTests: XCTestCase {
 
     func testPerFileDiffParserDeduplicatesIdenticalSnapshotsForSameFile() {
         let bodyText = """
-        Path: /Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
+        Path: /Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
         Kind: update
         Totals: +1 -0
 
@@ -229,7 +229,7 @@ final class TurnMessageCachesTests: XCTestCase {
         """
         let entries = [
             TurnFileChangeSummaryEntry(
-                path: "/Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift",
+                path: "/Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift",
                 additions: 1,
                 deletions: 0,
                 action: .edited

@@ -8,6 +8,7 @@ import Foundation
 
 enum AppEnvironment {
     private static let defaultRelayURLInfoPlistKey = "PHODEX_DEFAULT_RELAY_URL"
+    private static let mobidexDefaultRelayURLInfoPlistKey = "MOBIDEX_DEFAULT_RELAY_URL"
     private static let revenueCatPublicAPIKeyInfoPlistKey = "REVENUECAT_PUBLIC_API_KEY"
     private static let revenueCatEntitlementNameInfoPlistKey = "REVENUECAT_ENTITLEMENT_NAME"
     private static let revenueCatDefaultOfferingIDInfoPlistKey = "REVENUECAT_DEFAULT_OFFERING_ID"
@@ -18,6 +19,9 @@ enum AppEnvironment {
     static let defaultRelayURLString = ""
 
     static var relayBaseURL: String {
+        if let infoURL = resolvedString(forInfoPlistKey: mobidexDefaultRelayURLInfoPlistKey) {
+            return infoURL
+        }
         if let infoURL = resolvedString(forInfoPlistKey: defaultRelayURLInfoPlistKey) {
             return infoURL
         }
@@ -42,10 +46,10 @@ enum AppEnvironment {
     // Legal links shown in the paywall footer and Settings.
     // Keep these pointed at a public source-of-truth until the website serves dedicated legal routes.
     static let privacyPolicyURL = URL(
-        string: "https://github.com/Emanuele-web04/remodex/blob/main/Legal/PRIVACY_POLICY.md"
+        string: "https://github.com/AnsarUllahAnasZ360/codexapp/blob/main/Legal/PRIVACY_POLICY.md"
     )!
     static let termsOfUseURL = URL(
-        string: "https://github.com/Emanuele-web04/remodex/blob/main/Legal/TERMS_OF_USE.md"
+        string: "https://github.com/AnsarUllahAnasZ360/codexapp/blob/main/Legal/TERMS_OF_USE.md"
     )!
 
     // Powers in-app feedback actions so every entry point targets the same inbox.
@@ -54,7 +58,7 @@ enum AppEnvironment {
         components.scheme = "mailto"
         components.path = supportEmailAddress
         components.queryItems = [
-            URLQueryItem(name: "subject", value: "Share Feedback on Remodex with the Developer")
+            URLQueryItem(name: "subject", value: "Share Feedback on Mobidex with the Developer")
         ]
         return components.url!
     }

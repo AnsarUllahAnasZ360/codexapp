@@ -26,21 +26,22 @@ const {
   writePairingSession,
 } = require("../src/daemon-state");
 
-test("buildLaunchAgentPlist points launchd at run-service with remodex state paths", () => {
+test("buildLaunchAgentPlist points launchd at run-service with mobidex state paths", () => {
   const plist = buildLaunchAgentPlist({
     homeDir: "/Users/tester",
     pathEnv: "/usr/local/bin:/usr/bin",
-    stateDir: "/Users/tester/.remodex",
-    stdoutLogPath: "/Users/tester/.remodex/logs/bridge.stdout.log",
-    stderrLogPath: "/Users/tester/.remodex/logs/bridge.stderr.log",
+    stateDir: "/Users/tester/.mobidex",
+    stdoutLogPath: "/Users/tester/.mobidex/logs/bridge.stdout.log",
+    stderrLogPath: "/Users/tester/.mobidex/logs/bridge.stderr.log",
     nodePath: "/usr/local/bin/node",
-    cliPath: "/tmp/remodex/bin/remodex.js",
+    cliPath: "/tmp/mobidex/bin/mobidex.js",
   });
 
-  assert.match(plist, /<string>com\.remodex\.bridge<\/string>/);
+  assert.match(plist, /<string>com\.z360\.mobidex\.bridge<\/string>/);
   assert.match(plist, /<string>run-service<\/string>/);
   assert.match(plist, /<key>KeepAlive<\/key>\s*<dict>\s*<key>SuccessfulExit<\/key>\s*<false\/>\s*<\/dict>/);
   assert.match(plist, /<key>REMODEX_DEVICE_STATE_DIR<\/key>/);
+  assert.match(plist, /<key>MOBIDEX_DEVICE_STATE_DIR<\/key>/);
 });
 
 test("resolveLaunchAgentPlistPath writes into the user's LaunchAgents folder", () => {
@@ -49,7 +50,7 @@ test("resolveLaunchAgentPlistPath writes into the user's LaunchAgents folder", (
       env: { HOME: "/Users/tester" },
       osImpl: { homedir: () => "/Users/fallback" },
     }),
-    path.join("/Users/tester", "Library", "LaunchAgents", "com.remodex.bridge.plist")
+    path.join("/Users/tester", "Library", "LaunchAgents", "com.z360.mobidex.bridge.plist")
   );
 });
 
@@ -94,14 +95,14 @@ test("stopMacOSBridgeService falls back to label bootout when plist bootout fail
         [
           "bootout",
           `gui/${process.getuid()}`,
-          path.join(process.env.HOME, "Library", "LaunchAgents", "com.remodex.bridge.plist"),
+          path.join(process.env.HOME, "Library", "LaunchAgents", "com.z360.mobidex.bridge.plist"),
         ],
       ],
       [
         "launchctl",
         [
           "bootout",
-          `gui/${process.getuid()}/com.remodex.bridge`,
+          `gui/${process.getuid()}/com.z360.mobidex.bridge`,
         ],
       ],
     ]);
@@ -228,13 +229,13 @@ test("getMacOSBridgeServiceStatus reports launchd + runtime metadata together", 
     writePairingSession({ sessionId: "session-2" });
     writeBridgeStatus({ state: "running", connectionStatus: "connected", pid: 55 });
 
-    const plistPath = path.join(rootDir, "LaunchAgents", "com.remodex.bridge.plist");
+    const plistPath = path.join(rootDir, "LaunchAgents", "com.z360.mobidex.bridge.plist");
     fs.mkdirSync(path.dirname(plistPath), { recursive: true });
     fs.writeFileSync(plistPath, "plist");
 
     const status = getMacOSBridgeServiceStatus({
       platform: "darwin",
-      env: { HOME: rootDir, REMODEX_DEVICE_STATE_DIR: rootDir },
+      env: { HOME: rootDir, MOBIDEX_DEVICE_STATE_DIR: rootDir },
       execFileSyncImpl() {
         return "pid = 55";
       },
@@ -249,19 +250,19 @@ test("getMacOSBridgeServiceStatus reports launchd + runtime metadata together", 
 });
 
 function withTempDaemonEnv(run) {
-  const previousDir = process.env.REMODEX_DEVICE_STATE_DIR;
+  const previousDir = process.env.MOBIDEX_DEVICE_STATE_DIR;
   const previousHome = process.env.HOME;
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-launch-agent-"));
-  process.env.REMODEX_DEVICE_STATE_DIR = rootDir;
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-launch-agent-"));
+  process.env.MOBIDEX_DEVICE_STATE_DIR = rootDir;
   process.env.HOME = rootDir;
 
   try {
     return run({ rootDir });
   } finally {
     if (previousDir === undefined) {
-      delete process.env.REMODEX_DEVICE_STATE_DIR;
+      delete process.env.MOBIDEX_DEVICE_STATE_DIR;
     } else {
-      process.env.REMODEX_DEVICE_STATE_DIR = previousDir;
+      process.env.MOBIDEX_DEVICE_STATE_DIR = previousDir;
     }
     if (previousHome === undefined) {
       delete process.env.HOME;

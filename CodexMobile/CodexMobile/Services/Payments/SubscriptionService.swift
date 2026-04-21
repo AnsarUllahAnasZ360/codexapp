@@ -50,7 +50,7 @@ struct SubscriptionPackageOption: Identifiable {
     }
 
     var callToActionTitle: String {
-        isLifetime ? "Unlock Lifetime" : "Unlock Remodex Pro"
+        isLifetime ? "Unlock Lifetime" : "Unlock Mobidex Pro"
     }
 
     var footerDescription: String {

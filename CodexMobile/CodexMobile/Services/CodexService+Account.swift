@@ -6,10 +6,10 @@
 
 import Foundation
 
-private let minimumBridgePackageUpdateCommand = "npm install -g remodex@latest"
+private let minimumBridgePackageUpdateCommand = "npm install -g mobidex@latest"
 private let forcedBridgeUpgradeFromVersion = "1.3.7"
 private let forcedBridgeUpgradeTargetVersion = "1.3.8"
-private let forcedBridgeUpgradeCommand = "npm install -g remodex@1.3.8"
+private let forcedBridgeUpgradeCommand = "npm install -g mobidex@1.3.8"
 
 enum CodexGPTAccountStatus: String, Codable, Sendable {
     case unknown
@@ -170,7 +170,7 @@ extension CodexService {
         }
     }
 
-    // Refreshes only the bridge package version state so Remodex updates stay independent from GPT UX.
+    // Refreshes only the bridge package version state so Mobidex updates stay independent from GPT UX.
     func refreshBridgeVersionState(allowAvailableBridgeUpdatePrompt: Bool = false) async {
         guard isConnected else {
             return
@@ -751,14 +751,14 @@ extension CodexService {
         if let currentVersion = currentVersion?.trimmingCharacters(in: .whitespacesAndNewlines),
            !currentVersion.isEmpty {
             message =
-                "This Mac bridge is running Remodex \(currentVersion), but this iPhone app requires Remodex \(CodexService.minimumSupportedBridgePackageVersion) or newer. Update the npm package on your Mac, then reconnect."
+                "This Mac bridge is running Mobidex \(currentVersion), but this iPhone app requires Mobidex \(CodexService.minimumSupportedBridgePackageVersion) or newer. Update the npm package on your Mac, then reconnect."
         } else {
             message =
-                "This Mac bridge is too old for this version of Remodex iPhone. Update the Remodex npm package on your Mac to \(CodexService.minimumSupportedBridgePackageVersion) or newer, then reconnect."
+                "This Mac bridge is too old for this version of Mobidex iPhone. Update the Mobidex npm package on your Mac to \(CodexService.minimumSupportedBridgePackageVersion) or newer, then reconnect."
         }
 
         return CodexBridgeUpdatePrompt(
-            title: "Update Remodex on your Mac to reconnect",
+            title: "Update Mobidex on your Mac to reconnect",
             message: message,
             command: minimumBridgePackageUpdateCommand
         )
@@ -819,16 +819,16 @@ extension CodexService {
         latestVersion: String
     ) -> CodexBridgeUpdatePrompt {
         CodexBridgeUpdatePrompt(
-            title: "A newer Remodex update is available on your Mac",
-            message: "This Mac bridge is running Remodex \(currentVersion), and npm now has Remodex \(latestVersion). Update the package on your Mac when you're ready, then reconnect to start using the newer build.",
+            title: "A newer Mobidex update is available on your Mac",
+            message: "This Mac bridge is running Mobidex \(currentVersion), and npm now has Mobidex \(latestVersion). Update the package on your Mac when you're ready, then reconnect to start using the newer build.",
             command: minimumBridgePackageUpdateCommand
         )
     }
 
     private func forcedBridgePackageUpdatePrompt(currentVersion: String) -> CodexBridgeUpdatePrompt {
         CodexBridgeUpdatePrompt(
-            title: "Update Remodex on your Mac to reconnect",
-            message: "This Mac bridge is running Remodex \(currentVersion). Update the Remodex CLI on your Mac to \(forcedBridgeUpgradeTargetVersion), then reconnect.",
+            title: "Update Mobidex on your Mac to reconnect",
+            message: "This Mac bridge is running Mobidex \(currentVersion). Update the Mobidex CLI on your Mac to \(forcedBridgeUpgradeTargetVersion), then reconnect.",
             command: forcedBridgeUpgradeCommand
         )
     }

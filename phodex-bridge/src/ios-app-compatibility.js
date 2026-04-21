@@ -7,7 +7,7 @@
 const MINIMUM_SUPPORTED_IOS_APP_VERSION = "1.1";
 const IOS_APP_COMPATIBILITY_GATE_BRIDGE_VERSION = "1.3.8";
 const LEGACY_BRIDGE_VERSION_FOR_IOS_1_0 = "1.3.7";
-const LEGACY_BRIDGE_DOWNGRADE_COMMAND = `npm install -g remodex@${LEGACY_BRIDGE_VERSION_FOR_IOS_1_0}`;
+const LEGACY_BRIDGE_DOWNGRADE_COMMAND = `npm install -g mobidex@${LEGACY_BRIDGE_VERSION_FOR_IOS_1_0}`;
 const NOTICE_BOX_WIDTH = 74;
 
 function buildIOSAppCompatibilitySnapshot({
@@ -105,9 +105,9 @@ function buildLegacyIOSAppCompatibilityMessage({
   const normalizedBridgeVersion = normalizeVersionString(bridgeVersion) || "this bridge";
   const normalizedIOSAppVersion = normalizeVersionString(iosAppVersion) || "an older version";
 
-  return `Remodex bridge ${normalizedBridgeVersion} requires Remodex iPhone `
+  return `Mobidex bridge ${normalizedBridgeVersion} requires Mobidex iPhone `
     + `${MINIMUM_SUPPORTED_IOS_APP_VERSION} or later. `
-    + `Update the iPhone app from the App Store first, or install Remodex bridge `
+    + `Update the iPhone app from the App Store first, or install Mobidex bridge `
     + `${LEGACY_BRIDGE_VERSION_FOR_IOS_1_0} to keep using iPhone ${normalizedIOSAppVersion}.`;
 }
 
@@ -127,7 +127,7 @@ function buildCachedIOSAppCompatibilityWarning({
   return formatNoticeBox({
     title: "!!! WARNING !!!",
     lines: [
-      `Remodex bridge ${snapshot.bridgeVersion || "latest"} requires Remodex iPhone ${snapshot.minimumSupportedIOSAppVersion} or later.`,
+      `Mobidex bridge ${snapshot.bridgeVersion || "latest"} requires Mobidex iPhone ${snapshot.minimumSupportedIOSAppVersion} or later.`,
       "Update the iPhone app from the App Store first.",
       "",
       `Need to keep using iPhone ${snapshot.iosAppVersion}? Install bridge ${snapshot.legacyBridgeVersion}:`,

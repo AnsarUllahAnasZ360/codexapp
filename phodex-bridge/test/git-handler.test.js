@@ -21,9 +21,9 @@ function git(cwd, ...args) {
 }
 
 function makeTempRepo() {
-  const repoDir = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-git-handler-"));
+  const repoDir = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-git-handler-"));
   git(repoDir, "init", "-b", "main");
-  git(repoDir, "config", "user.name", "Remodex Tests");
+  git(repoDir, "config", "user.name", "Mobidex Tests");
   git(repoDir, "config", "user.email", "tests@example.com");
   fs.writeFileSync(path.join(repoDir, "README.md"), "# Test\n");
   fs.mkdirSync(path.join(repoDir, "phodex-bridge", "src"), { recursive: true });
@@ -40,7 +40,7 @@ function canonicalPath(candidatePath) {
 }
 
 function makeBareRemote() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "remodex-git-handler-remote-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-git-handler-remote-"));
 }
 
 // Publishes a branch to origin, then deletes the local ref so the bridge sees it as remote-only.
@@ -214,10 +214,10 @@ test("gitCheckout surfaces a specific error when the requested branch does not e
 
   try {
     await assert.rejects(
-      __test.gitCheckout(repoDir, { branch: "remodex/missing" }),
+      __test.gitCheckout(repoDir, { branch: "mobidex/missing" }),
       (error) =>
         error?.errorCode === "branch_not_found"
-          && error?.userMessage === "Branch 'remodex/missing' does not exist locally."
+          && error?.userMessage === "Branch 'mobidex/missing' does not exist locally."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -242,25 +242,25 @@ test("gitStash includes untracked files so a blocked branch switch can succeed a
   }
 });
 
-test("gitCreateBranch normalizes bare names into remodex/* and checks out the new branch", async () => {
+test("gitCreateBranch normalizes bare names into mobidex/* and checks out the new branch", async () => {
   const repoDir = makeTempRepo();
 
   try {
     const result = await __test.gitCreateBranch(repoDir, { name: "new-branch" });
 
-    assert.equal(result.branch, "remodex/new-branch");
-    assert.equal(result.status?.branch, "remodex/new-branch");
-    assert.equal(git(repoDir, "rev-parse", "--abbrev-ref", "HEAD"), "remodex/new-branch");
+    assert.equal(result.branch, "mobidex/new-branch");
+    assert.equal(result.status?.branch, "mobidex/new-branch");
+    assert.equal(git(repoDir, "rev-parse", "--abbrev-ref", "HEAD"), "mobidex/new-branch");
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
   }
 });
 
-test("normalizeCreatedBranchName avoids double-prefixing remodex branches", () => {
-  assert.equal(__test.normalizeCreatedBranchName("feature/foo"), "remodex/feature/foo");
-  assert.equal(__test.normalizeCreatedBranchName("remodex/feature/foo"), "remodex/feature/foo");
-  assert.equal(__test.normalizeCreatedBranchName("my new branch"), "remodex/my-new-branch");
-  assert.equal(__test.normalizeCreatedBranchName("feature / login page"), "remodex/feature/login-page");
+test("normalizeCreatedBranchName avoids double-prefixing mobidex branches", () => {
+  assert.equal(__test.normalizeCreatedBranchName("feature/foo"), "mobidex/feature/foo");
+  assert.equal(__test.normalizeCreatedBranchName("mobidex/feature/foo"), "mobidex/feature/foo");
+  assert.equal(__test.normalizeCreatedBranchName("my new branch"), "mobidex/my-new-branch");
+  assert.equal(__test.normalizeCreatedBranchName("feature / login page"), "mobidex/feature/login-page");
   assert.equal(__test.normalizeCreatedBranchName("   "), "");
 });
 
@@ -272,7 +272,7 @@ test("gitCreateBranch rejects invalid Git branch names before checkout", async (
       __test.gitCreateBranch(repoDir, { name: "feature..oops" }),
       (error) =>
         error?.errorCode === "invalid_branch_name"
-          && error?.userMessage === "Branch 'remodex/feature..oops' is not a valid Git branch name."
+          && error?.userMessage === "Branch 'mobidex/feature..oops' is not a valid Git branch name."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -309,13 +309,13 @@ test("gitCreateBranch rejects duplicate branch names with a specific error", asy
   const repoDir = makeTempRepo();
 
   try {
-    git(repoDir, "branch", "remodex/already-there");
+    git(repoDir, "branch", "mobidex/already-there");
 
     await assert.rejects(
       __test.gitCreateBranch(repoDir, { name: "already-there" }),
       (error) =>
         error?.errorCode === "branch_exists"
-          && error?.userMessage === "Branch 'remodex/already-there' already exists."
+          && error?.userMessage === "Branch 'mobidex/already-there' already exists."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -327,11 +327,11 @@ test("gitBranches hides remote-only branches from the local selector list", asyn
   const remoteDir = makeBareRemote();
 
   try {
-    pushRemoteOnlyBranch(repoDir, remoteDir, "remodex/remote-only");
+    pushRemoteOnlyBranch(repoDir, remoteDir, "mobidex/remote-only");
 
     const result = await __test.gitBranches(repoDir);
 
-    assert.ok(!result.branches.includes("remodex/remote-only"));
+    assert.ok(!result.branches.includes("mobidex/remote-only"));
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
     fs.rmSync(remoteDir, { recursive: true, force: true });
@@ -346,14 +346,14 @@ test("gitBranches preserves the repo default branch even when it is not checked 
     git(remoteDir, "init", "--bare");
     git(repoDir, "remote", "add", "origin", remoteDir);
     git(repoDir, "push", "-u", "origin", "main");
-    git(repoDir, "checkout", "-b", "remodex/topic");
+    git(repoDir, "checkout", "-b", "mobidex/topic");
     git(repoDir, "branch", "-D", "main");
 
     const result = await __test.gitBranches(repoDir);
 
     assert.equal(result.default, "main");
     assert.ok(!result.branches.includes("main"));
-    assert.ok(result.branches.includes("remodex/topic"));
+    assert.ok(result.branches.includes("mobidex/topic"));
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
     fs.rmSync(remoteDir, { recursive: true, force: true });
@@ -365,13 +365,13 @@ test("gitCreateBranch rejects names that already exist only on origin", async ()
   const remoteDir = makeBareRemote();
 
   try {
-    pushRemoteOnlyBranch(repoDir, remoteDir, "remodex/remote-only");
+    pushRemoteOnlyBranch(repoDir, remoteDir, "mobidex/remote-only");
 
     await assert.rejects(
       __test.gitCreateBranch(repoDir, { name: "remote-only" }),
       (error) =>
         error?.errorCode === "branch_exists"
-          && error?.userMessage === "Branch 'remodex/remote-only' already exists on origin. Check it out locally instead of creating a new branch."
+          && error?.userMessage === "Branch 'mobidex/remote-only' already exists on origin. Check it out locally instead of creating a new branch."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -387,7 +387,7 @@ test("gitStatus marks a branch as published when origin has it even without loca
     git(remoteDir, "init", "--bare");
     git(repoDir, "remote", "add", "origin", remoteDir);
     git(repoDir, "push", "-u", "origin", "main");
-    git(repoDir, "checkout", "-b", "remodex/published-no-upstream");
+    git(repoDir, "checkout", "-b", "mobidex/published-no-upstream");
     git(repoDir, "push", "origin", "HEAD");
 
     const result = await gitStatus(repoDir);
@@ -403,7 +403,7 @@ test("gitStatus marks a branch as published when origin has it even without loca
 test("gitCreateWorktree creates a managed worktree under CODEX_HOME/worktrees", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -415,11 +415,11 @@ test("gitCreateWorktree creates a managed worktree under CODEX_HOME/worktrees", 
     });
     const managedWorktreesRoot = canonicalPath(path.join(codexHome, "worktrees"));
 
-    assert.equal(result.branch, "remodex/new-worktree");
+    assert.equal(result.branch, "mobidex/new-worktree");
     assert.equal(result.alreadyExisted, false);
     assert.ok(result.worktreePath.startsWith(managedWorktreesRoot));
     assert.equal(path.basename(result.worktreePath), "phodex-bridge");
-    assert.equal(git(result.worktreePath, "rev-parse", "--abbrev-ref", "HEAD"), "remodex/new-worktree");
+    assert.equal(git(result.worktreePath, "rev-parse", "--abbrev-ref", "HEAD"), "mobidex/new-worktree");
 
     git(repoDir, "worktree", "remove", "--force", path.dirname(result.worktreePath));
   } finally {
@@ -436,7 +436,7 @@ test("gitCreateWorktree creates a managed worktree under CODEX_HOME/worktrees", 
 test("gitCreateManagedWorktree creates a detached managed worktree under CODEX_HOME/worktrees", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -464,25 +464,25 @@ test("gitCreateManagedWorktree creates a detached managed worktree under CODEX_H
   }
 });
 
-test("gitCreateWorktree reuses an existing worktree for the same remodex branch", async () => {
+test("gitCreateWorktree reuses an existing worktree for the same mobidex branch", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
-  const siblingWorktree = path.join(path.dirname(repoDir), `${path.basename(repoDir)}-wt-remodex-existing`);
+  const siblingWorktree = path.join(path.dirname(repoDir), `${path.basename(repoDir)}-wt-mobidex-existing`);
 
   process.env.CODEX_HOME = codexHome;
 
   try {
-    git(repoDir, "branch", "remodex/existing");
-    git(repoDir, "worktree", "add", siblingWorktree, "remodex/existing");
+    git(repoDir, "branch", "mobidex/existing");
+    git(repoDir, "worktree", "add", siblingWorktree, "mobidex/existing");
 
     const result = await __test.gitCreateWorktree(projectDir, {
       name: "existing",
       baseBranch: "main",
     });
 
-    assert.equal(result.branch, "remodex/existing");
+    assert.equal(result.branch, "mobidex/existing");
     assert.equal(result.alreadyExisted, true);
     assert.equal(result.worktreePath, canonicalPath(path.join(siblingWorktree, "phodex-bridge")));
   } finally {
@@ -501,7 +501,7 @@ test("gitCreateWorktree rejects a reused local branch name before ignoring the c
   const repoDir = makeTempRepo();
 
   try {
-    git(repoDir, "branch", "remodex/already-there");
+    git(repoDir, "branch", "mobidex/already-there");
 
     await assert.rejects(
       __test.gitCreateWorktree(repoDir, {
@@ -510,7 +510,7 @@ test("gitCreateWorktree rejects a reused local branch name before ignoring the c
       }),
       (error) =>
         error?.errorCode === "branch_exists"
-          && error?.userMessage === "Branch 'remodex/already-there' already exists locally. Choose another name or open that branch instead."
+          && error?.userMessage === "Branch 'mobidex/already-there' already exists locally. Choose another name or open that branch instead."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -530,7 +530,7 @@ test("gitCreateWorktree rejects invalid Git branch names before creating a workt
       }),
       (error) =>
         error?.errorCode === "invalid_branch_name"
-          && error?.userMessage === "Branch 'remodex/feature..oops' is not a valid Git branch name."
+          && error?.userMessage === "Branch 'mobidex/feature..oops' is not a valid Git branch name."
     );
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -562,7 +562,7 @@ test("gitCreateWorktree rejects remote-only base branches because worktrees star
 test("gitCreateWorktree carries tracked and untracked changes into the new worktree and cleans local", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -602,7 +602,7 @@ test("gitCreateWorktree carries tracked and untracked changes into the new workt
 test("gitCreateWorktree can copy tracked and untracked changes into the new worktree without cleaning local", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -646,7 +646,7 @@ test("gitCreateWorktree can copy tracked and untracked changes into the new work
 test("gitCreateWorktree ignores dirty changes outside the current project scope", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -684,7 +684,7 @@ test("gitCreateWorktree ignores dirty changes outside the current project scope"
 test("gitCreateWorktree leaves ignored files in the local checkout during handoff", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -719,7 +719,7 @@ test("gitCreateWorktree leaves ignored files in the local checkout during handof
 test("gitCreateWorktree leaves ignored files only in Local when copying changes for a fork", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -756,7 +756,7 @@ test("gitCreateWorktree leaves ignored files only in Local when copying changes 
 test("gitCreateManagedWorktree moves tracked changes into the detached worktree and cleans Local", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -794,7 +794,7 @@ test("gitCreateManagedWorktree moves tracked changes into the detached worktree 
 test("gitCreateManagedWorktree copies tracked changes into the detached worktree and keeps Local dirty", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -835,7 +835,7 @@ test("gitCreateManagedWorktree copies tracked changes into the detached worktree
 test("gitCreateManagedWorktree leaves ignored files only in Local", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -868,7 +868,7 @@ test("gitCreateManagedWorktree leaves ignored files only in Local", async () => 
 test("gitTransferManagedHandoff moves tracked changes from Local into an existing managed worktree", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -910,7 +910,7 @@ test("gitTransferManagedHandoff moves tracked changes from Local into an existin
 test("gitTransferManagedHandoff moves only the current project scope into the managed worktree", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -952,7 +952,7 @@ test("gitTransferManagedHandoff moves only the current project scope into the ma
 test("gitTransferManagedHandoff moves tracked changes from a managed worktree back to Local", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;
@@ -994,7 +994,7 @@ test("gitTransferManagedHandoff moves tracked changes from a managed worktree ba
 test("gitRemoveWorktree removes a managed worktree and its freshly created branch", async () => {
   const repoDir = makeTempRepo();
   const projectDir = path.join(repoDir, "phodex-bridge");
-  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "remodex-codex-home-"));
+  const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "mobidex-codex-home-"));
   const previousCodexHome = process.env.CODEX_HOME;
 
   process.env.CODEX_HOME = codexHome;

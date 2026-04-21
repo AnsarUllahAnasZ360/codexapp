@@ -204,7 +204,7 @@ final class TurnViewModel {
     }
     var canCreatePullRequest: Bool { createPullRequestValidationMessage == nil }
     var localSelectableGitDefaultBranch: String? {
-        remodexSelectableDefaultBranch(
+        mobidexSelectableDefaultBranch(
             defaultBranch: gitDefaultBranch,
             availableGitBranchTargets: availableGitBranchTargets
         )
@@ -954,7 +954,7 @@ final class TurnViewModel {
         }
 
         if let subscriptions, !subscriptions.hasAppAccess {
-            codex.lastErrorMessage = "Your 5 free messages are over. Unlock Remodex Pro to keep chatting."
+            codex.lastErrorMessage = "Your 5 free messages are over. Unlock Mobidex Pro to keep chatting."
             return
         }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// FILE: phodex.js
-// Purpose: Backward-compatible wrapper that forwards legacy `phodex up` usage to `mobidex up`.
+// FILE: mobidex.js
+// Purpose: Mobidex CLI wrapper around the shared bridge runtime.
 // Layer: CLI binary
 // Exports: none
 // Depends on: ./remodex

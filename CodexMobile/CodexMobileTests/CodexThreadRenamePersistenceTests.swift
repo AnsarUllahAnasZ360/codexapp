@@ -22,7 +22,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             ),
         ]
 
@@ -33,7 +33,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -54,7 +54,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             ),
         ]
 
@@ -66,7 +66,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -86,7 +86,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             ),
         ]
 
@@ -98,7 +98,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
                 id: "thread-1",
                 title: "Mac Rename",
                 name: "Mac Rename",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -109,7 +109,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -129,7 +129,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             ),
         ]
 
@@ -140,7 +140,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Mac Title Rename",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -151,7 +151,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 
@@ -171,7 +171,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             ),
         ]
 
@@ -182,7 +182,7 @@ final class CodexThreadRenamePersistenceTests: XCTestCase {
             CodexThread(
                 id: "thread-1",
                 title: "Conversation",
-                cwd: "/tmp/remodex"
+                cwd: "/tmp/mobidex"
             )
         )
 

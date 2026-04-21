@@ -429,7 +429,9 @@ struct ContentView: View {
                     }
                 }
             ) {
-                if homeConnectionPhase == .connecting || (codex.hasReconnectCandidate && !codex.isConnected) {
+                if homeConnectionPhase == .connecting
+                    || (codex.hasReconnectCandidate && !codex.isConnected)
+                    || shouldOfferFreshPairingCodeAction {
                     if shouldOfferWakeSavedMacDisplayAction {
                         Button(isWakingSavedMacDisplay ? "Waking Mac Screen..." : "Wake Mac Screen") {
                             wakeSavedMacDisplay()
@@ -440,7 +442,7 @@ struct ContentView: View {
                         .disabled(isPreparingManualScanner || isWakingSavedMacDisplay)
                     }
 
-                    if codex.hasReconnectCandidate {
+                    if codex.hasReconnectCandidate || shouldOfferFreshPairingCodeAction {
                         reconnectSecondaryActions
                     }
                 }
@@ -729,6 +731,16 @@ struct ContentView: View {
         }
 
         return !codex.hasReconnectCandidate && !hasDismissedAutomaticScanner
+    }
+
+    // Source/self-host builds can still use terminal pairing codes when the build
+    // provides a default relay URL. Keep QR as the primary fresh-install path, but
+    // expose code pairing after the user backs out of the camera scanner.
+    private var shouldOfferFreshPairingCodeAction: Bool {
+        !codex.hasReconnectCandidate
+            && !codex.isConnected
+            && homeConnectionPhase == .offline
+            && !AppEnvironment.relayBaseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     // Shows the remembered pairing shell while a saved pairing can still be retried.

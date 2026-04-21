@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 # FILE: run-local-remodex.sh
-# Purpose: Starts a local relay plus the public bridge for OSS and self-host workflows.
+# Purpose: Starts a local relay plus the Mobidex bridge for OSS and self-host workflows.
 # Layer: developer utility
 # Exports: none
-# Depends on: node, npm, curl, relay/server.js, phodex-bridge/bin/remodex.js
+# Depends on: node, npm, curl, relay/server.js, phodex-bridge/bin/mobidex.js
 
 set -euo pipefail
 
@@ -21,17 +21,17 @@ RELAY_PID=""
 BRIDGE_SERVICE_STARTED="false"
 
 log() {
-  echo "[run-local-remodex] $*"
+  echo "[run-local-mobidex] $*"
 }
 
 die() {
-  echo "[run-local-remodex] $*" >&2
+  echo "[run-local-mobidex] $*" >&2
   exit 1
 }
 
 usage() {
   cat <<'EOF'
-Usage: ./run-local-remodex.sh [options]
+Usage: ./run-local-mobidex.sh [options]
 
 Options:
   --hostname HOSTNAME   Hostname or IP the iPhone should use to reach the relay
@@ -127,7 +127,7 @@ cleanup() {
   if [[ "${BRIDGE_SERVICE_STARTED}" == "true" ]]; then
     (
       cd "${BRIDGE_DIR}"
-      node ./bin/remodex.js stop >/dev/null 2>&1 || true
+      node ./bin/mobidex.js stop >/dev/null 2>&1 || true
     )
   fi
 
@@ -286,7 +286,7 @@ NODE
 
 print_summary() {
   cat <<EOF
-[run-local-remodex] Configuration
+[run-local-mobidex] Configuration
   Relay bind host : ${RELAY_BIND_HOST}
   Relay port      : ${RELAY_PORT}
   Relay hostname  : ${RELAY_HOSTNAME}
@@ -298,15 +298,15 @@ EOF
 start_bridge() {
   log "Starting bridge"
   cd "${BRIDGE_DIR}"
-  # The bridge bakes REMODEX_RELAY into the pairing QR, so advertise the host
+  # The bridge bakes MOBIDEX_RELAY into the pairing QR, so advertise the host
   # the iPhone can actually reach instead of the loopback health-check host.
-  REMODEX_RELAY="ws://${RELAY_HOSTNAME}:${RELAY_PORT}/relay" node ./bin/remodex.js up
+  MOBIDEX_RELAY="ws://${RELAY_HOSTNAME}:${RELAY_PORT}/relay" node ./bin/mobidex.js up
   BRIDGE_SERVICE_STARTED="true"
 }
 
 hold_open() {
   log "Local relay is ready. Keep this terminal open while testing."
-  log "Press Ctrl+C to stop both the local relay and the Remodex bridge service."
+  log "Press Ctrl+C to stop both the local relay and the Mobidex bridge service."
   wait "${RELAY_PID}"
 }
 

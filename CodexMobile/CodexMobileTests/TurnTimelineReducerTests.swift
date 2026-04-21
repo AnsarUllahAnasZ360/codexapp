@@ -1659,7 +1659,7 @@ final class TurnTimelineReducerTests: XCTestCase {
                 text: """
                 Status: completed
 
-                Path: /Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
+                Path: /Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
                 Kind: update
                 Totals: +1 -0
 
@@ -1757,7 +1757,7 @@ final class TurnTimelineReducerTests: XCTestCase {
                 text: """
                 Status: completed
 
-                Path: /Users/emanueledipietro/Developer/Remodex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
+                Path: /Users/emanueledipietro/Developer/Mobidex/CodexMobile/CodexMobile/Views/Turn/TurnMessageComponents.swift
                 Kind: update
                 Totals: +1 -0
 
@@ -2128,7 +2128,7 @@ final class TurnTimelineReducerTests: XCTestCase {
                 text: """
                 Status: completed
 
-                Path: /Users/emanueledipietro/Developer/Remodex/Sources/App.swift
+                Path: /Users/emanueledipietro/Developer/Mobidex/Sources/App.swift
                 Kind: update
                 Totals: +2 -1
                 """,

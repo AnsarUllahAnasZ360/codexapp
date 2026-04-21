@@ -4,8 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const outputPath = path.join(__dirname, "..", "src", "private-defaults.json");
-const relayUrl = readString(process.env.REMODEX_PACKAGE_DEFAULT_RELAY_URL);
-const pushServiceUrl = readString(process.env.REMODEX_PACKAGE_DEFAULT_PUSH_SERVICE_URL);
+const relayUrl = readFirstEnv(["MOBIDEX_PACKAGE_DEFAULT_RELAY_URL", "REMODEX_PACKAGE_DEFAULT_RELAY_URL"]);
+const pushServiceUrl = readFirstEnv(["MOBIDEX_PACKAGE_DEFAULT_PUSH_SERVICE_URL", "REMODEX_PACKAGE_DEFAULT_PUSH_SERVICE_URL"]);
 
 if (!relayUrl && !pushServiceUrl) {
   removeIfPresent(outputPath);
@@ -24,6 +24,16 @@ fs.writeFileSync(
 
 function readString(value) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function readFirstEnv(keys) {
+  for (const key of keys) {
+    const value = readString(process.env[key]);
+    if (value) {
+      return value;
+    }
+  }
+  return "";
 }
 
 function removeIfPresent(targetPath) {
