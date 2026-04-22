@@ -9,10 +9,11 @@ import Foundation
 
 let codexSecureProtocolVersion = 1
 let codexPairingQRVersion = 2
-let codexSecureHandshakeTag = "mobidex-e2ee-v1"
+// Keep wire-format domain tags legacy-compatible with existing bridge/relay releases.
+let codexSecureHandshakeTag = "remodex-e2ee-v1"
 let codexSecureHandshakeLabel = "client-auth"
 let codexSecureClockSkewToleranceSeconds: TimeInterval = 60
-let codexTrustedSessionResolveTag = "mobidex-trusted-session-resolve-v1"
+let codexTrustedSessionResolveTag = "remodex-trusted-session-resolve-v1"
 let codexTrustedSessionResolveClockSkewToleranceSeconds: TimeInterval = 90
 
 enum CodexSecureHandshakeMode: String, Codable, Sendable {
