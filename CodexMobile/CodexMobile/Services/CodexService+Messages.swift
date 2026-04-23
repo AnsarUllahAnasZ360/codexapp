@@ -1070,7 +1070,10 @@ extension CodexService {
             return
         }
 
-        var planState = messagesByThread[threadId]?[messageIndex].planState ?? CodexPlanState()
+        let existingPlanState = messagesByThread[threadId]?[messageIndex].planState
+        var planState = planStateHasContent(existingPlanState)
+            ? existingPlanState!
+            : (inheritedTurnPlanState(threadId: threadId, turnId: turnId, itemId: itemId) ?? CodexPlanState())
         if let explanation {
             let trimmedExplanation = explanation.trimmingCharacters(in: .whitespacesAndNewlines)
             planState.explanation = trimmedExplanation.isEmpty ? nil : trimmedExplanation
@@ -1086,6 +1089,29 @@ extension CodexService {
         refreshDerivedPlanMetadata(threadId: threadId, messageIndex: messageIndex)
         persistMessages()
         updateCurrentOutput(for: threadId)
+    }
+
+    private func planStateHasContent(_ planState: CodexPlanState?) -> Bool {
+        guard let planState else {
+            return false
+        }
+
+        return !(planState.explanation?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+            || !planState.steps.isEmpty
+    }
+
+    private func inheritedTurnPlanState(threadId: String, turnId: String?, itemId: String?) -> CodexPlanState? {
+        let _ = itemId
+        guard let turnId,
+              !turnId.isEmpty else {
+            return nil
+        }
+
+        return messagesByThread[threadId]?.last(where: { message in
+            message.kind == .plan
+                && message.turnId == turnId
+                && planStateHasContent(message.planState)
+        })?.planState
     }
 
     // Keeps multi-agent orchestration events on a single structured timeline row.
@@ -3202,12 +3228,21 @@ extension CodexService {
         }
 
         if let turnId, !turnId.isEmpty {
-            return messagesByThread[threadId]?.indices.reversed().first(where: { index in
+            if let exactPresentationIndex = messagesByThread[threadId]?.indices.reversed().first(where: { index in
                 let candidate = messagesByThread[threadId]?[index]
                 return candidate?.role == .system
                     && candidate?.kind == .plan
                     && candidate?.turnId == turnId
                     && candidate?.resolvedPlanPresentation == planPresentation
+            }) {
+                return exactPresentationIndex
+            }
+
+            return messagesByThread[threadId]?.indices.reversed().first(where: { index in
+                let candidate = messagesByThread[threadId]?[index]
+                return candidate?.role == .system
+                    && candidate?.kind == .plan
+                    && candidate?.turnId == turnId
             })
         }
 

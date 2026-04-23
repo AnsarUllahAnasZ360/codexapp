@@ -9,7 +9,7 @@ import Foundation
 
 let codexSecureProtocolVersion = 1
 let codexPairingQRVersion = 2
-let codexSecureHandshakeTag = "mobidex-e2ee-v1"
+let codexSecureHandshakeTag = "remodex-e2ee-v1"
 let codexSecureHandshakeLabel = "client-auth"
 let codexSecureClockSkewToleranceSeconds: TimeInterval = 60
 let codexTrustedSessionResolveTag = "mobidex-trusted-session-resolve-v1"

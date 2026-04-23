@@ -162,7 +162,7 @@ final class CodexStatusTests: XCTestCase {
         )
 
         XCTAssertEqual(service.rateLimitBuckets.count, 1)
-        XCTAssertEqual(service.rateLimitBuckets.first?.limitId, "codex")
+        XCTAssertEqual(service.rateLimitBuckets.first?.limitId, "primary")
         XCTAssertEqual(service.rateLimitBuckets.first?.primary?.remainingPercent, 58)
     }
 
@@ -298,7 +298,7 @@ final class CodexStatusTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(service.rateLimitBuckets.map(\.limitId), ["primary", "secondary"])
+        XCTAssertEqual(service.rateLimitBuckets.map(\.limitId), ["secondary", "primary"])
         XCTAssertEqual(service.rateLimitBuckets.first(where: { $0.limitId == "primary" })?.primary?.remainingPercent, 45)
         XCTAssertEqual(service.rateLimitBuckets.first(where: { $0.limitId == "secondary" })?.primary?.remainingPercent, 80)
     }

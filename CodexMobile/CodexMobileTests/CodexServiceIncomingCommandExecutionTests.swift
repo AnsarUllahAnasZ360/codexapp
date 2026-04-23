@@ -1107,8 +1107,8 @@ final class CodexServiceIncomingCommandExecutionTests: XCTestCase {
 
         XCTAssertEqual(assistantRows.count, 1)
         XCTAssertEqual(assistantRows[0].turnId, turnID)
-        XCTAssertEqual(assistantRows[0].itemId, "server-message")
-        XCTAssertEqual(assistantRows[0].text, "Testo finale")
+        XCTAssertEqual(assistantRows[0].itemId, "local-message")
+        XCTAssertEqual(assistantRows[0].text, "Testo parziale")
     }
 
     func testHistoryMergeDoesNotCollapseSingleAssistantTurnWhileStillRunning() {

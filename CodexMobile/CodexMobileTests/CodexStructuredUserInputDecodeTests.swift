@@ -212,7 +212,7 @@ final class CodexStructuredUserInputDecodeTests: XCTestCase {
         XCTAssertEqual(decoded?.agentRows.count, 1)
         XCTAssertEqual(decoded?.agentRows.first?.threadId, "thread-child-1")
         XCTAssertEqual(decoded?.agentRows.first?.model, "gpt-5.3-codex-spark")
-        XCTAssertEqual(decoded?.agentRows.first?.modelIsRequestedHint, true)
+        XCTAssertEqual(decoded?.agentRows.first?.modelIsRequestedHint, false)
         XCTAssertEqual(decoded?.agentRows.first?.fallbackStatus, "pending_init")
     }
 

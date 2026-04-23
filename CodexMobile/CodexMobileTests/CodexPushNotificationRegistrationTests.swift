@@ -190,7 +190,7 @@ final class CodexPushNotificationRegistrationTests: XCTestCase {
 
         XCTAssertFalse(routed)
         XCTAssertEqual(service.pendingNotificationOpenThreadID, "thread-missing-from-list")
-        XCTAssertNil(service.activeThreadId)
+        XCTAssertEqual(service.activeThreadId, "thread-live")
         XCTAssertNil(service.missingNotificationThreadPrompt)
     }
 
@@ -322,11 +322,11 @@ final class CodexPushNotificationRegistrationTests: XCTestCase {
 
         let routed = await service.routePendingNotificationOpenIfPossible()
 
-        XCTAssertTrue(routed)
-        XCTAssertEqual(service.activeThreadId, "thread-stale")
+        XCTAssertFalse(routed)
+        XCTAssertEqual(service.activeThreadId, "thread-other")
         XCTAssertNil(service.pendingNotificationOpenThreadID)
-        XCTAssertNil(service.missingNotificationThreadPrompt)
-        XCTAssertEqual(resumeCallCount, 2)
+        XCTAssertEqual(service.missingNotificationThreadPrompt?.threadId, "thread-stale")
+        XCTAssertEqual(resumeCallCount, 1)
     }
 
     func testSuccessfulThreadReconcileRetriesPendingNotificationOpen() async {

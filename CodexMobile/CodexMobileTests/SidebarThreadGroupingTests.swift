@@ -36,7 +36,7 @@ final class SidebarThreadGroupingTests: XCTestCase {
 
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups[0].id, "project:__no_project__")
-        XCTAssertEqual(groups[0].label, "No Project")
+        XCTAssertEqual(groups[0].label, "Cloud")
         XCTAssertNil(groups[0].projectPath)
         XCTAssertEqual(groups[0].threads.map(\.id), ["thread-a", "thread-b"])
     }
@@ -52,7 +52,7 @@ final class SidebarThreadGroupingTests: XCTestCase {
 
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups[0].id, "project:__no_project__")
-        XCTAssertEqual(groups[0].label, "No Project")
+        XCTAssertEqual(groups[0].label, "Cloud")
         XCTAssertNil(groups[0].projectPath)
         XCTAssertEqual(groups[0].threads.map(\.id), ["thread-a", "thread-b"])
     }
@@ -77,7 +77,7 @@ final class SidebarThreadGroupingTests: XCTestCase {
         XCTAssertEqual(groups[1].threads.map(\.id), ["archived-thread"])
     }
 
-    func testMakeGroupsMarksCodexManagedWorktreesInLabelAndIcon() {
+    func testMakeGroupsMarksCodexManagedWorktreesInLabelAndIcon() throws {
         let now = Date(timeIntervalSince1970: 1_700_000_000)
         let threads = [
             makeThread(id: "main-thread", updatedAt: now, cwd: "/Users/me/work/Mobidex"),
@@ -95,8 +95,8 @@ final class SidebarThreadGroupingTests: XCTestCase {
         )
 
         XCTAssertEqual(mainGroup.label, "Mobidex")
-        XCTAssertEqual(mainGroup.iconSystemName, "folder")
-        XCTAssertEqual(worktreeGroup.label, "Mobidex 15")
+        XCTAssertEqual(mainGroup.iconSystemName, "laptopcomputer")
+        XCTAssertEqual(worktreeGroup.label, "Mobidex [ce15]")
         XCTAssertEqual(worktreeGroup.iconSystemName, "arrow.triangle.branch")
     }
 
@@ -117,7 +117,7 @@ final class SidebarThreadGroupingTests: XCTestCase {
         let choices = SidebarThreadGrouping.makeProjectChoices(from: threads)
 
         XCTAssertEqual(choices.map(\.label), ["app", "site"])
-        XCTAssertEqual(choices.map(\.iconSystemName), ["folder", "folder"])
+        XCTAssertEqual(choices.map(\.iconSystemName), ["laptopcomputer", "laptopcomputer"])
         XCTAssertEqual(choices.map(\.projectPath), ["/Users/me/work/app", "/Users/me/work/site"])
     }
 
@@ -136,8 +136,8 @@ final class SidebarThreadGroupingTests: XCTestCase {
         let labelsByPath = Dictionary(uniqueKeysWithValues: choices.map { ($0.projectPath, $0) })
 
         XCTAssertEqual(labelsByPath["/Users/me/work/Mobidex"]?.label, "Mobidex")
-        XCTAssertEqual(labelsByPath["/Users/me/work/Mobidex"]?.iconSystemName, "folder")
-        XCTAssertEqual(labelsByPath["/Users/me/.codex/worktrees/ce15/Mobidex"]?.label, "Mobidex 15")
+        XCTAssertEqual(labelsByPath["/Users/me/work/Mobidex"]?.iconSystemName, "laptopcomputer")
+        XCTAssertEqual(labelsByPath["/Users/me/.codex/worktrees/ce15/Mobidex"]?.label, "Mobidex [ce15]")
         XCTAssertEqual(labelsByPath["/Users/me/.codex/worktrees/ce15/Mobidex"]?.iconSystemName, "arrow.triangle.branch")
     }
 

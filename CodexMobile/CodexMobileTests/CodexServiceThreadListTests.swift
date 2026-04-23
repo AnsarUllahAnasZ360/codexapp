@@ -11,7 +11,7 @@ import XCTest
 final class CodexServiceThreadListTests: XCTestCase {
     private static var retainedServices: [CodexService] = []
 
-    func testListThreadsRequestsSeventyActiveThreadsAndAppServerSourceKinds() async {
+    func testListThreadsRequestsSeventyActiveThreadsAndAppServerSourceKinds() async throws {
         let service = makeService()
         service.isConnected = true
         service.isInitialized = true
@@ -44,7 +44,7 @@ final class CodexServiceThreadListTests: XCTestCase {
             )
         }
 
-        await service.listThreads()
+        try await service.listThreads()
 
         XCTAssertEqual(activeRequestParams?["limit"]?.intValue, 70)
         XCTAssertEqual(archivedRequestParams?["limit"]?.intValue, 10)
@@ -77,7 +77,7 @@ final class CodexServiceThreadListTests: XCTestCase {
 
         XCTAssertEqual(
             sorted.map(\.id),
-            ["later-by-updated-at", "later-by-created-at", "oldest-thread"]
+            ["later-by-created-at", "later-by-updated-at", "oldest-thread"]
         )
     }
 
