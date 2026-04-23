@@ -1,9 +1,8 @@
 // FILE: CodexMobileApp.swift
-// Purpose: App entry point, RevenueCat setup, and root dependency wiring.
+// Purpose: App entry point and root dependency wiring.
 // Layer: App
 // Exports: CodexMobileApp
 
-import RevenueCat
 import SwiftUI
 
 @MainActor
@@ -12,57 +11,103 @@ struct CodexMobileApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @UIApplicationDelegateAdaptor(CodexMobileAppDelegate.self) private var appDelegate
     @State private var codexService: CodexService
-    @State private var subscriptionService: SubscriptionService
 
     init() {
-        Self.configureRevenueCatIfAvailable()
         let service = CodexService()
         service.configureNotifications()
         _codexService = State(initialValue: service)
-        _subscriptionService = State(initialValue: SubscriptionService())
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(codexService)
-                .environment(subscriptionService)
-                .task {
-                    await subscriptionService.bootstrap()
-                }
-                .onOpenURL { url in
-                    Task { @MainActor in
-                        guard CodexService.legacyGPTLoginCallbackEnabled else {
-                            return
+            if CodexMobileUITestFixtureConfiguration.isEnabled {
+                CodexMobileUITestTimelineFixtureView(configuration: .current)
+            } else {
+                ContentView()
+                    .environment(codexService)
+                    .onOpenURL { url in
+                        Task { @MainActor in
+                            guard CodexService.legacyGPTLoginCallbackEnabled else {
+                                return
+                            }
+                            await codexService.handleGPTLoginCallbackURL(url)
                         }
-                        await codexService.handleGPTLoginCallbackURL(url)
                     }
+                    .onReceive(
+                        NotificationCenter.default.publisher(
+                            for: UIApplication.didReceiveMemoryWarningNotification
+                        )
+                    ) { _ in
+                        TurnCacheManager.resetAll()
+                    }
+                    .onChange(of: scenePhase) { _, newPhase in
+                        guard newPhase == .background else { return }
+                        TurnCacheManager.resetAll()
+                    }
+            }
+        }
+    }
+}
+
+private struct CodexMobileUITestFixtureConfiguration {
+    let messageCount: Int
+    let autoStream: Bool
+
+    static var isEnabled: Bool {
+        ProcessInfo.processInfo.arguments.contains("-CodexUITestsFixture")
+    }
+
+    static var current: Self {
+        let arguments = ProcessInfo.processInfo.arguments
+        let count = value(after: "-CodexUITestsMessageCount", in: arguments)
+            .flatMap(Int.init) ?? 500
+        return Self(
+            messageCount: max(1, count),
+            autoStream: arguments.contains("-CodexUITestsAutoStream")
+        )
+    }
+
+    private static func value(after flag: String, in arguments: [String]) -> String? {
+        guard let index = arguments.firstIndex(of: flag),
+              arguments.indices.contains(arguments.index(after: index)) else {
+            return nil
+        }
+        return arguments[arguments.index(after: index)]
+    }
+}
+
+private struct CodexMobileUITestTimelineFixtureView: View {
+    let configuration: CodexMobileUITestFixtureConfiguration
+    @State private var streamedRows = 0
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 10) {
+                ForEach(0..<configuration.messageCount, id: \.self) { index in
+                    fixtureRow(index: index)
                 }
-                .onReceive(
-                    NotificationCenter.default.publisher(
-                        for: UIApplication.didReceiveMemoryWarningNotification
-                    )
-                ) { _ in
-                    TurnCacheManager.resetAll()
+                ForEach(0..<streamedRows, id: \.self) { index in
+                    fixtureRow(index: configuration.messageCount + index)
                 }
-                .onChange(of: scenePhase) { _, newPhase in
-                    guard newPhase == .background else { return }
-                    TurnCacheManager.resetAll()
-                }
+            }
+            .padding(16)
+        }
+        .accessibilityIdentifier("turn.timeline.scrollview")
+        .task {
+            guard configuration.autoStream else { return }
+            for step in 1...80 {
+                try? await Task.sleep(nanoseconds: 20_000_000)
+                streamedRows = step
+            }
         }
     }
 
-    // Configures RevenueCat once at launch using the client-safe public SDK key.
-    private static func configureRevenueCatIfAvailable() {
-        guard let apiKey = AppEnvironment.revenueCatPublicAPIKey else {
-            assertionFailure("Missing RevenueCat public API key in Info.plist")
-            return
-        }
-
-        #if DEBUG
-        Purchases.logLevel = .debug
-        #endif
-
-        Purchases.configure(withAPIKey: apiKey)
+    private func fixtureRow(index: Int) -> some View {
+        Text("Fixture message \(index) - Mobidex timeline performance row with deterministic content.")
+            .font(.system(size: 15, weight: index.isMultiple(of: 3) ? .semibold : .regular))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(index.isMultiple(of: 2) ? Color(.secondarySystemBackground) : Color(.tertiarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }

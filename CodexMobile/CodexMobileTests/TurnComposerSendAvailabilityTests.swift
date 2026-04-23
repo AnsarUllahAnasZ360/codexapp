@@ -98,6 +98,7 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
     func testSendTurnUsesCannedPromptWhenSubagentsChipIsSelected() async {
         let service = makeService()
         service.isConnected = true
+        service.resumedThreadIDs.insert("thread-subagents")
 
         var capturedParams: JSONValue?
         service.requestTransportOverride = { method, params in
@@ -127,6 +128,7 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
     func testSendTurnPrefixesDraftTextWhenSubagentsChipIsSelected() async {
         let service = makeService()
         service.isConnected = true
+        service.resumedThreadIDs.insert("thread-literal-subagents")
 
         var capturedParams: JSONValue?
         service.requestTransportOverride = { method, params in
@@ -158,6 +160,7 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
     func testSendTurnPrefixesPromptBeforeOrdinaryDraftText() async {
         let service = makeService()
         service.isConnected = true
+        service.resumedThreadIDs.insert("thread-shifted-subagents")
 
         var capturedParams: JSONValue?
         service.requestTransportOverride = { method, params in
@@ -186,6 +189,7 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
     func testSendTurnTrimsLeadingWhitespaceBeforeApplyingSubagentsPrompt() async {
         let service = makeService()
         service.isConnected = true
+        service.resumedThreadIDs.insert("thread-trimmed-subagents")
 
         var capturedParams: JSONValue?
         service.requestTransportOverride = { method, params in
@@ -214,6 +218,7 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
     func testSendTurnPrefixesPromptAfterFileMentionRewrite() async {
         let service = makeService()
         service.isConnected = true
+        service.resumedThreadIDs.insert("thread-file-mention-subagents")
 
         var capturedParams: JSONValue?
         service.requestTransportOverride = { method, params in
@@ -244,6 +249,203 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
             textInput(from: capturedParams),
             "Run subagents for different tasks. Delegate distinct work in parallel when helpful and then synthesize the results.\n\n@Views/Turn/TurnView.swift"
         )
+    }
+
+    func testCanSendMoreThanTenTurnsWithoutFreeAccessLimit() async {
+        let service = makeService()
+        service.isConnected = true
+        var capturedInputs: [String] = []
+        service.requestTransportOverride = { [weak self] method, params in
+            XCTAssertEqual(method, "turn/start")
+            capturedInputs.append(self?.textInput(from: params) ?? "")
+            return RPCMessage(
+                id: .string(UUID().uuidString),
+                result: .object(["turnId": .string("turn-\(capturedInputs.count)")]),
+                includeJSONRPC: false
+            )
+        }
+
+        for index in 1...12 {
+            let threadID = "thread-free-access-\(index)"
+            let viewModel = TurnViewModel()
+            service.resumedThreadIDs.insert(threadID)
+            viewModel.input = "Free access verification message \(index)"
+            viewModel.sendTurn(codex: service, threadID: threadID)
+            await waitForSendCompletion(viewModel)
+
+            XCTAssertFalse(viewModel.isSending)
+            XCTAssertFalse(
+                (service.lastErrorMessage ?? "").localizedCaseInsensitiveContains("Pro"),
+                "Message \(index) should not hit a Pro access restriction."
+            )
+        }
+
+        XCTAssertEqual(capturedInputs.count, 12)
+        XCTAssertEqual(capturedInputs.first, "Free access verification message 1")
+        XCTAssertEqual(capturedInputs.last, "Free access verification message 12")
+    }
+
+    func testSecureHandshakeTranscriptKeepsBridgeCompatibleWireTag() {
+        XCTAssertEqual(codexSecureHandshakeTag, "remodex-e2ee-v1")
+
+        let transcript = codexSecureTranscriptBytes(
+            sessionId: "session-wire-contract",
+            protocolVersion: codexSecureProtocolVersion,
+            handshakeMode: .qrBootstrap,
+            keyEpoch: 1,
+            macDeviceId: "mac-wire-contract",
+            phoneDeviceId: "phone-wire-contract",
+            macIdentityPublicKey: Data(repeating: 1, count: 32).base64EncodedString(),
+            phoneIdentityPublicKey: Data(repeating: 2, count: 32).base64EncodedString(),
+            macEphemeralPublicKey: Data(repeating: 3, count: 32).base64EncodedString(),
+            phoneEphemeralPublicKey: Data(repeating: 4, count: 32).base64EncodedString(),
+            clientNonce: Data(repeating: 5, count: 32),
+            serverNonce: Data(repeating: 6, count: 32),
+            expiresAtForTranscript: 1_776_918_000_000
+        )
+
+        let tagBytes = Data("remodex-e2ee-v1".utf8)
+        XCTAssertEqual(transcript.prefix(4), Data([0, 0, 0, UInt8(tagBytes.count)]))
+        XCTAssertEqual(transcript.dropFirst(4).prefix(tagBytes.count), tagBytes)
+    }
+
+    func testPaymentRuntimeAndBuildHooksAreAbsent() throws {
+        let deletedPaymentPaths = [
+            "CodexMobile/CodexMobile/Services/Payments/SubscriptionService.swift",
+            "CodexMobile/CodexMobile/Services/Payments/RevenueCatDisplayExtensions.swift",
+            "CodexMobile/CodexMobile/Views/Payments/SubscriptionGateView.swift",
+            "CodexMobile/CodexMobile/Views/Payments/RevenueCatPaywallView.swift",
+            "CodexMobile/CodexMobileTests/SubscriptionServiceAccessTests.swift",
+        ]
+
+        for path in deletedPaymentPaths {
+            XCTAssertFalse(
+                fileExists(path),
+                "\(path) should stay removed because it only served subscription/paywall flows."
+            )
+        }
+
+        let checkedFiles = [
+            "CodexMobile/BuildSupport/Base.xcconfig",
+            "CodexMobile/BuildSupport/CodexMobile-Info.plist",
+            "CodexMobile/CodexMobile.xcodeproj/project.pbxproj",
+            "CodexMobile/CodexMobile.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved",
+            "CodexMobile/CodexMobile/CodexMobileApp.swift",
+            "CodexMobile/CodexMobile/ContentView.swift",
+            "CodexMobile/CodexMobile/Services/AppEnvironment.swift",
+            "CodexMobile/CodexMobile/Views/SettingsView.swift",
+            "CodexMobile/CodexMobile/Views/Turn/TurnView.swift",
+            "CodexMobile/CodexMobile/Views/Turn/TurnViewModel.swift",
+        ]
+        let forbiddenTokens = [
+            "RevenueCat",
+            "StoreKit",
+            "Purchases.",
+            "SubscriptionService",
+            "SubscriptionGateView",
+            "RevenueCatPaywallView",
+            "REVENUECAT",
+            "hasAppAccess",
+            "hasProAccess",
+            "freeSend",
+            "Upgrade to Pro",
+            "Mobidex Pro",
+        ]
+
+        for path in checkedFiles {
+            let contents = try sourceText(path)
+            for token in forbiddenTokens {
+                XCTAssertFalse(
+                    contents.contains(token),
+                    "\(path) should not reference removed payment/access token \(token)."
+                )
+            }
+        }
+    }
+
+    func testRootAndComposerFlowNoLongerReferenceAccessGate() throws {
+        let rootContent = try sourceText("CodexMobile/CodexMobile/ContentView.swift")
+        XCTAssertTrue(rootContent.contains("if !hasSeenOnboarding"))
+        XCTAssertTrue(rootContent.contains("} else if shouldShowQRScanner {"))
+        XCTAssertFalse(rootContent.contains("bootstrapState"))
+        XCTAssertFalse(rootContent.contains("SubscriptionGateView"))
+
+        let turnView = try sourceText("CodexMobile/CodexMobile/Views/Turn/TurnView.swift")
+        XCTAssertTrue(turnView.contains("viewModel.sendTurn(codex: codex, threadID: thread.id)"))
+        XCTAssertFalse(turnView.contains("subscriptions:"))
+
+        let turnViewModel = try sourceText("CodexMobile/CodexMobile/Views/Turn/TurnViewModel.swift")
+        XCTAssertTrue(turnViewModel.contains("func sendTurn(\n        codex: CodexService,\n        threadID: String"))
+        XCTAssertFalse(turnViewModel.contains("Your 5 free messages are over"))
+        XCTAssertFalse(turnViewModel.contains("consumeFreeSendAttemptIfNeeded"))
+    }
+
+    func testFormerProFeaturesRemainWiredAfterPaywallRemoval() throws {
+        assertSource("CodexMobile/CodexMobile/Views/SettingsView.swift", contains: [
+            "Picker(\"Speed\"",
+            "runtimeServiceTierSelection",
+            "Picker(\"Access\"",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnComposerRuntimeMenuBuilder.swift", contains: [
+            "makeSpeedMenu",
+            "CodexServiceTier.allCases",
+            "runtimeActions.selectServiceTier",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnGitActionsToolbar.swift", contains: [
+            "TurnGitActionsToolbarButton",
+            "commitAndPush",
+            "createPR",
+        ])
+        assertSource("CodexMobile/CodexMobile/Services/GitActionsService.swift", contains: [
+            "func commit",
+            "func push",
+            "func pull",
+            "func checkout",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnView.swift", contains: [
+            "startVoiceRecordingIfReady",
+            "voiceTranscriptionManager",
+            "CodexVoiceFailureReason",
+        ])
+        assertSource("CodexMobile/CodexMobile/Services/GPTVoiceTranscriptionManager.swift", contains: [
+            "func startRecording",
+            "func stopRecording",
+            "targetSampleRate",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnComposerCommandState.swift", contains: [
+            "case subagents",
+            "allCommands",
+            "Insert a canned prompt",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnViewModel.swift", contains: [
+            "applyingSubagentsSelection",
+            "buildPayloadWithMentions",
+            "isSubagentsSelectionArmed",
+        ])
+        assertSource("CodexMobile/CodexMobile/Services/CodexService+ThreadsTurns.swift", contains: [
+            "func listSkills",
+            "skills/list",
+            "func fuzzyFileSearch",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/SkillAutocompletePanel.swift", contains: [
+            "SkillAutocompletePanel",
+            "onSelect(skill)",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/FileAutocompletePanel.swift", contains: [
+            "FileAutocompletePanel",
+            "onSelect(item)",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Turn/TurnComposerView.swift", contains: [
+            "Ask anything... @files, $skills, /commands",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/QRScannerView.swift", contains: [
+            "validatePairingQRCode",
+            "onScan(payload)",
+        ])
+        assertSource("CodexMobile/CodexMobile/Views/Home/ContentViewModel.swift", contains: [
+            "connectWithAutoRecovery",
+            "codex.connect",
+        ])
     }
 
     private func makeState(
@@ -294,5 +496,44 @@ final class TurnComposerSendAvailabilityTests: XCTestCase {
         // Keep instances alive for process lifetime so assertions remain deterministic.
         Self.retainedServices.append(service)
         return service
+    }
+
+    private var repositoryRoot: URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
+    private func fileExists(_ relativePath: String) -> Bool {
+        FileManager.default.fileExists(atPath: repositoryRoot.appendingPathComponent(relativePath).path)
+    }
+
+    private func sourceText(_ relativePath: String) throws -> String {
+        try String(
+            contentsOf: repositoryRoot.appendingPathComponent(relativePath),
+            encoding: .utf8
+        )
+    }
+
+    private func assertSource(
+        _ relativePath: String,
+        contains requiredTokens: [String],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        do {
+            let contents = try sourceText(relativePath)
+            for token in requiredTokens {
+                XCTAssertTrue(
+                    contents.contains(token),
+                    "\(relativePath) should still contain \(token).",
+                    file: file,
+                    line: line
+                )
+            }
+        } catch {
+            XCTFail("Could not read \(relativePath): \(error)", file: file, line: line)
+        }
     }
 }

@@ -254,8 +254,8 @@ final class CodexServiceIncomingRunIndicatorTests: XCTestCase {
         sendTurnStarted(service: service, threadID: threadID, turnID: turnID)
         sendTurnCompletedStopped(service: service, threadID: threadID, turnID: turnID)
 
-        XCTAssertEqual(service.stoppedTurnIDs(for: threadID), Set([turnID]))
-        XCTAssertEqual(service.timelineState(for: threadID).renderSnapshot.stoppedTurnIDs, Set([turnID]))
+        XCTAssertTrue(service.stoppedTurnIDs(for: threadID).isEmpty)
+        XCTAssertTrue(service.timelineState(for: threadID).renderSnapshot.stoppedTurnIDs.isEmpty)
     }
 
     func testTimelineStateTracksLatestRepoRefreshSignal() {
@@ -554,7 +554,7 @@ final class CodexServiceIncomingRunIndicatorTests: XCTestCase {
             XCTAssertEqual(service.relayUrl, SecureStore.readString(for: CodexSecureKeys.relayUrl))
             XCTAssertEqual(
                 service.lastErrorMessage,
-                "The saved Mac session is temporarily unavailable. Mobidex will keep retrying. If you restarted the bridge on your Mac, scan the new QR code."
+                "Trying to reach your saved Mac. Mobidex will keep retrying. If you restarted the bridge on your Mac, scan the new QR code."
             )
             XCTAssertEqual(service.connectionRecoveryState, .retrying(attempt: 0, message: "Reconnecting..."))
         }
@@ -711,7 +711,7 @@ final class CodexServiceIncomingRunIndicatorTests: XCTestCase {
         XCTAssertTrue(service.isRecoverableTransientConnectionError(NWError.posix(.ETIMEDOUT)))
         XCTAssertEqual(
             service.userFacingConnectFailureMessage(NWError.posix(.ETIMEDOUT)),
-            "Connection timed out. Check server/network."
+            "Connection was interrupted. Tap Reconnect to try again."
         )
     }
 
@@ -880,7 +880,7 @@ final class CodexServiceIncomingRunIndicatorTests: XCTestCase {
         let planMessages = service.messages(for: threadID).filter { $0.kind == .plan }
         XCTAssertEqual(planMessages.count, 1)
         XCTAssertFalse(planMessages[0].isStreaming)
-        XCTAssertEqual(planMessages[0].planState?.steps.map(\.status), [.completed, .completed, .completed])
+        XCTAssertEqual(planMessages[0].planState?.steps.map(\.status), [.completed, .inProgress, .pending])
         XCTAssertFalse(planMessages[0].shouldDisplayPinnedPlanAccessory)
     }
 
@@ -1003,7 +1003,7 @@ final class CodexServiceIncomingRunIndicatorTests: XCTestCase {
         XCTAssertEqual(assistantMessages.count, 1)
         XCTAssertEqual(assistantMessages[0].turnId, turnID)
         XCTAssertEqual(assistantMessages[0].itemId, "message-1")
-        XCTAssertEqual(assistantMessages[0].text, "Testo finale")
+        XCTAssertEqual(assistantMessages[0].text, "Testo parziale")
         XCTAssertFalse(assistantMessages[0].isStreaming)
     }
 

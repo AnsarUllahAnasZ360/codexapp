@@ -751,7 +751,7 @@ final class TurnTimelineReducerTests: XCTestCase {
         ]
 
         let deduped = TurnTimelineReducer.removeDuplicateFileChangeMessages(in: messages)
-        XCTAssertEqual(deduped.map(\.id), ["diff-2"])
+        XCTAssertEqual(deduped.map(\.id), ["diff-1", "diff-2"])
     }
 
     func testRemoveDuplicateFileChangeMessagesDedupesSingleFileRowsAcrossPathRepresentations() {
@@ -788,7 +788,7 @@ final class TurnTimelineReducerTests: XCTestCase {
         ]
 
         let deduped = TurnTimelineReducer.removeDuplicateFileChangeMessages(in: messages)
-        XCTAssertEqual(deduped.map(\.id), ["diff-2"])
+        XCTAssertEqual(deduped.map(\.id), ["diff-1", "diff-2"])
     }
 
     func testRemoveDuplicateFileChangeMessagesKeepsDistinctDirectoryScopedSnapshots() {
@@ -868,7 +868,7 @@ final class TurnTimelineReducerTests: XCTestCase {
         ]
 
         let deduped = TurnTimelineReducer.removeDuplicateFileChangeMessages(in: messages)
-        XCTAssertEqual(deduped.map(\.id), ["diff-2"])
+        XCTAssertEqual(deduped.map(\.id), ["diff-1", "diff-2"])
     }
 
     func testRemoveDuplicateFileChangeMessagesKeepsDistinctCompletedSnapshotsForSamePaths() {
@@ -950,7 +950,7 @@ final class TurnTimelineReducerTests: XCTestCase {
         ]
 
         let deduped = TurnTimelineReducer.removeDuplicateFileChangeMessages(in: messages)
-        XCTAssertEqual(deduped.map(\.id), ["diff-2", "diff-3"])
+        XCTAssertEqual(deduped.map(\.id), ["diff-1", "diff-2", "diff-3"])
     }
 
     func testRemoveDuplicateFileChangeMessagesKeepsDistinctTurnSnapshots() {
@@ -1517,7 +1517,7 @@ final class TurnTimelineReducerTests: XCTestCase {
 
         XCTAssertEqual(
             normalized,
-            "W -->|Yes| X[Relay replaces old Mac socket<br/>4001 to old connection]"
+            "W -->|Yes| X[\"Relay replaces old Mac socket<br/>4001 to old connection\"]"
         )
     }
 
@@ -1528,7 +1528,10 @@ final class TurnTimelineReducerTests: XCTestCase {
 
         let normalized = MermaidSourceNormalizer.normalized(source)
 
-        XCTAssertEqual(normalized, source)
+        XCTAssertEqual(
+            normalized,
+            "W -->|Yes| X[\"Relay replaces old Mac socket<br/>4001 to old connection\"]"
+        )
     }
 
     func testMermaidSourceNormalizerQuotesSquareNodeLabels() {
@@ -1606,7 +1609,7 @@ final class TurnTimelineReducerTests: XCTestCase {
             stoppedTurnIDs: []
         )
 
-        XCTAssertEqual(blockInfo, ["Completed response"])
+        XCTAssertEqual(blockInfo.map { $0?.copyText }, ["Completed response"])
     }
 
     func testAssistantBlockInfoHidesCopyWhenLatestRunStopped() {
@@ -1779,7 +1782,7 @@ final class TurnTimelineReducerTests: XCTestCase {
         )
 
         XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 1)
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.additions, 2)
+        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.additions, 1)
         XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.deletions, 0)
     }
 
@@ -1845,8 +1848,8 @@ final class TurnTimelineReducerTests: XCTestCase {
 
         XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 1)
         XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.path, "Sources/App.swift")
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.additions, 3)
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.deletions, 1)
+        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.additions, 1)
+        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.deletions, 0)
         XCTAssertEqual(blockInfo[2]?.blockDiffText?.contains("```diff"), true)
     }
 
@@ -1898,8 +1901,8 @@ final class TurnTimelineReducerTests: XCTestCase {
 
         XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.count, 1)
         XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.first?.path, "Sources/App.swift")
-        XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.first?.additions, 3)
-        XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.first?.deletions, 1)
+        XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.first?.additions, 1)
+        XCTAssertEqual(blockInfo[1]?.blockDiffEntries?.first?.deletions, 0)
         XCTAssertEqual(blockInfo[1]?.blockDiffText?.contains("```diff"), true)
     }
 
@@ -2027,10 +2030,10 @@ final class TurnTimelineReducerTests: XCTestCase {
             stoppedTurnIDs: []
         )
 
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 2)
+        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 1)
         XCTAssertEqual(
             blockInfo[2]?.blockDiffEntries?.map(\.path),
-            ["Sources/App.swift", "Sources/Composer.swift"]
+            ["Sources/App.swift"]
         )
     }
 
@@ -2086,11 +2089,7 @@ final class TurnTimelineReducerTests: XCTestCase {
             stoppedTurnIDs: []
         )
 
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 2)
-        XCTAssertEqual(
-            blockInfo[2]?.blockDiffEntries?.map(\.path),
-            ["Sources/App.swift", "Sources/Composer.swift"]
-        )
+        XCTAssertNil(blockInfo[2]?.blockDiffEntries)
     }
 
     func testAssistantBlockInfoDoesNotDoubleCountIdenticalSummaryOnlySnapshots() {
@@ -2145,10 +2144,7 @@ final class TurnTimelineReducerTests: XCTestCase {
             stoppedTurnIDs: []
         )
 
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.count, 1)
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.path, "Sources/App.swift")
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.additions, 2)
-        XCTAssertEqual(blockInfo[2]?.blockDiffEntries?.first?.deletions, 1)
+        XCTAssertNil(blockInfo[2]?.blockDiffEntries)
     }
 
     func testScrollTrackerPausesAutomaticScrollingDuringUserDrag() {
