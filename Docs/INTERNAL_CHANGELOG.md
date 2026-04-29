@@ -11,7 +11,7 @@ This changelog tracks Mobidex-specific product and integration history. It is in
 - Integrated plugin mention composer support and autocomplete refinements while keeping backward-compatible runtime fallbacks.
 - Integrated Git initialization, git status/draft improvements, command/git draft UI support, and bridge-side git writer support.
 - Integrated safe workspace image preview support with bridge-side path checks, recognized image extensions, size limits, and cache validation.
-- Prepared release baseline as iOS version `1.3`, build `114`, with bridge package `mobidex@1.3.10`.
+- Prepared release baseline as iOS version `1.3`, build `116`, with bridge package `mobidex@1.3.10`.
 - Explicitly rejected upstream subscription/paywall artifacts so Mobidex remains free-access.
 - Multi-device implementation was not merged because the actual multi-Mac product surface lives on a separate `codex/multi-device` branch rather than local `main`.
 
