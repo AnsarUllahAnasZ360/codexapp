@@ -65,9 +65,9 @@ struct ContentView: View {
     private let whatsNewPresentationDelayNanoseconds: UInt64 = 30_000_000_000
     private let sidebarGestureLogBucketWidth: CGFloat = 40
     private let sidebarSwipeCommitDistance: CGFloat = 30
-    private let wakingSavedMacDisplayStatusMessage = "Trying to wake your Mac display..."
     private let whatsNewReleaseVersion = "1.1"
     private static let sidebarSpring = Animation.spring(response: 0.35, dampingFraction: 0.85)
+    private static var isSidebarDebugLoggingEnabled: Bool { false }
 
     var body: some View {
         rootContentWithBannerOverlay
@@ -235,7 +235,7 @@ struct ContentView: View {
                     manualPairingCode = ""
                 }
             } message: {
-                Text("Paste the pairing code shown in the terminal on your Mac or in your phone shell.")
+                Text("Paste the pairing code shown in the terminal on your computer or in your phone shell.")
             }
     }
 
@@ -424,7 +424,7 @@ struct ContentView: View {
                     || (codex.hasReconnectCandidate && !codex.isConnected)
                     || shouldOfferFreshPairingCodeAction {
                     if shouldOfferWakeSavedMacDisplayAction {
-                        Button(isWakingSavedMacDisplay ? "Waking Mac Screen..." : "Wake Mac Screen") {
+                        Button(isWakingSavedMacDisplay ? "Waking Screen..." : "Wake Screen") {
                             wakeSavedMacDisplay()
                         }
                         .font(AppFont.subheadline(weight: .semibold))
@@ -488,6 +488,9 @@ struct ContentView: View {
     // Keep the wake CTA visible whenever the pairing still knows enough to try a display pulse.
     private var shouldOfferWakeSavedMacDisplayAction: Bool {
         canWakeSavedMacDisplay
+            && codex.supportsDisplayWake
+            && hasAttemptedAutomaticWakeSavedMacDisplay
+            && !isWakingSavedMacDisplay
     }
 
     // Keeps the silent wake fallback automatic exactly once per offline cycle before the user taps manually again.
@@ -498,6 +501,7 @@ struct ContentView: View {
             && !isShowingManualPairingEntry
             && codex.shouldAutoReconnectOnForeground
             && canWakeSavedMacDisplay
+            && codex.supportsDisplayWake
             && !hasAttemptedAutomaticWakeSavedMacDisplay
             && !isWakingSavedMacDisplay
     }
@@ -549,9 +553,8 @@ struct ContentView: View {
 
     // Sends one wake pulse over the best remembered pairing path without hiding the manual wake affordance.
     private func performSavedMacDisplayWakeAttempt() async {
-        guard !isWakingSavedMacDisplay else { return }
+        guard codex.supportsDisplayWake, !isWakingSavedMacDisplay else { return }
         isWakingSavedMacDisplay = true
-        codex.lastErrorMessage = wakingSavedMacDisplayStatusMessage
 
         defer { isWakingSavedMacDisplay = false }
 
@@ -559,11 +562,9 @@ struct ContentView: View {
             await viewModel.stopAutoReconnectForManualRetry(codex: codex)
             let handoffService = DesktopHandoffService(codex: codex)
             try await handoffService.wakeDisplay()
-            if codex.lastErrorMessage == wakingSavedMacDisplayStatusMessage {
-                codex.lastErrorMessage = nil
-            }
         } catch {
-            codex.lastErrorMessage = error.localizedDescription
+            // Wake failures are expected when the Mac has already gone past display sleep,
+            // so do not surface them as sticky composer errors inside the active chat.
         }
     }
 
@@ -704,7 +705,19 @@ struct ContentView: View {
         selectedThread = thread
         codex.activeThreadId = thread.id
         codex.markThreadAsViewed(thread.id)
-        codex.requestImmediateActiveThreadSync(threadId: thread.id)
+        Task { @MainActor in
+            do {
+                let restoredThread = try await codex.restorePinnedThreadIfNeeded(threadId: thread.id)
+                if let restoredThread {
+                    selectedThread = restoredThread
+                    codex.activeThreadId = restoredThread.id
+                }
+            } catch {
+                codex.lastErrorMessage = error.localizedDescription
+            }
+
+            codex.requestImmediateActiveThreadSync(threadId: thread.id)
+        }
     }
 
     // Keeps first-run installs in the scanner by default, while still letting users back out later.
@@ -848,6 +861,7 @@ struct ContentView: View {
     }
 
     private func beginSidebarGestureDebugIfNeeded(kind: String, startX: CGFloat) {
+        guard Self.isSidebarDebugLoggingEnabled else { return }
         guard activeSidebarGestureDebugID == nil else { return }
         sidebarGestureDebugSequence += 1
         activeSidebarGestureDebugID = sidebarGestureDebugSequence
@@ -859,6 +873,7 @@ struct ContentView: View {
     }
 
     private func logSidebarGestureProgressIfNeeded(translation: CGFloat) {
+        guard Self.isSidebarDebugLoggingEnabled else { return }
         guard let gestureID = activeSidebarGestureDebugID else { return }
         let bucket = max(0, Int(translation / sidebarGestureLogBucketWidth))
         guard bucket != lastSidebarGestureLogBucket else { return }
@@ -874,8 +889,12 @@ struct ContentView: View {
         lastSidebarGestureLogBucket = nil
     }
 
-    private func debugSidebarLog(_ message: String) {
-        print("[SidebarDebug] \(message)")
+    // Gesture and lifecycle logs are lazy so release builds do not build strings on hot paths.
+    private func debugSidebarLog(_ message: @autoclosure () -> String) {
+        #if DEBUG
+        guard Self.isSidebarDebugLoggingEnabled else { return }
+        print("[SidebarDebug] \(message())")
+        #endif
     }
 
     // Uses the responder chain instead of per-view bindings so mixed SwiftUI/UIKit inputs all close together.

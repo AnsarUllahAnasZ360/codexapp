@@ -169,6 +169,7 @@ extension CodexService {
             connectionRecoveryState = .idle
         }
         supportsStructuredSkillInput = true
+        supportsStructuredMentionInput = true
         supportsTurnCollaborationMode = false
         hasResolvedRateLimitsSnapshot = false
         bridgeInstalledVersion = nil
@@ -193,7 +194,7 @@ extension CodexService {
     }
 
     func syncBridgeKeepMacAwakePreferenceIfNeeded(showFailureInUI: Bool = false) async {
-        guard isConnected else {
+        guard isConnected, supportsKeepAwakeWhileBridgeRuns else {
             return
         }
 
@@ -383,8 +384,7 @@ extension CodexService {
         if let bridgeVersion, !bridgeVersion.isEmpty,
            let minimumSupportedAppVersion, !minimumSupportedAppVersion.isEmpty {
             return .invalidInput(
-                "This Mac bridge is running Mobidex \(bridgeVersion), which requires Mobidex iPhone \(minimumSupportedAppVersion) or newer. Update the iPhone app, then reconnect."
-            )
+                "This Mac bridge is running Mobidex \(bridgeVersion), which requires Mobidex iPhone \(minimumSupportedAppVersion) or newer. Update the iPhone app, then reconnect."            )
         }
 
         if let minimumSupportedAppVersion, !minimumSupportedAppVersion.isEmpty {
@@ -526,6 +526,7 @@ extension CodexService {
         shouldAutoReconnectOnForeground = false
         connectionRecoveryState = .idle
         supportsStructuredSkillInput = true
+        supportsStructuredMentionInput = true
         supportsTurnCollaborationMode = false
         bridgeInstalledVersion = nil
         latestBridgePackageVersion = nil
@@ -772,7 +773,7 @@ extension CodexService {
             case .posix(let code) where code == .EMSGSIZE:
                 return oversizedRelayPayloadMessage
             case .posix(let code) where code == .ENETDOWN || code == .ENETUNREACH || code == .EHOSTUNREACH:
-                return "Cannot reach relay server at \(attemptedURL). Check that the iPhone can access the Mac on the local network."
+                return "Cannot reach relay server at \(attemptedURL). Check that the iPhone can access the paired computer on the local network."
             case .posix(let code) where code == .ETIMEDOUT:
                 return "Connection timed out. Check server/network."
             case .dns(let code):
@@ -996,7 +997,7 @@ extension CodexService {
 
         switch rawValue {
         case 4001:
-            return "This relay session was replaced by another Mac connection. Scan a new QR code to reconnect."
+            return "This relay session was replaced by another computer connection. Scan a new QR code to reconnect."
         case 4003:
             return "This device was replaced by a newer connection. Scan a new QR code to reconnect."
         default:
@@ -1028,7 +1029,7 @@ extension CodexService {
             return nil
         }
 
-        return "The Mac was temporarily unavailable and this message could not be delivered. Wait a moment, then try again."
+        return "The paired computer was temporarily unavailable and this message could not be delivered. Wait a moment, then try again."
     }
 
     func shouldClearSavedRelaySession(for closeCode: NWProtocolWebSocket.CloseCode?) -> Bool {

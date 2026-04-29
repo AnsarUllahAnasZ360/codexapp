@@ -60,7 +60,6 @@ private extension CodexService {
         CodexBridgeUpdatePrompt(
             title: "Update Mobidex on your Mac to use Speed controls",
             message: "This Mac bridge does not support the selected speed setting yet. Update the Mobidex npm package to use Fast Mode and other speed controls.",
-            command: "npm install -g mobidex@latest"
-        )
+            command: "npm install -g mobidex@latest"        )
     }
 }

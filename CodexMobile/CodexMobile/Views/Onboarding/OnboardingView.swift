@@ -51,8 +51,7 @@ struct OnboardingView: View {
                         icon: "qrcode.viewfinder",
                         title: "Start Pairing",
                         description: "Run this on your Mac. A QR code will appear in your terminal — scan it next.",
-                        command: "mobidex up"
-                    )
+                        command: "mobidex up"                    )
                     .tag(4)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))

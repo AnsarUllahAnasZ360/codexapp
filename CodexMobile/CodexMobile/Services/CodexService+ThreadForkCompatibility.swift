@@ -59,7 +59,6 @@ private extension CodexService {
         CodexBridgeUpdatePrompt(
             title: "Update Mobidex on your Mac to use /fork",
             message: "This Mac bridge does not support native conversation forks yet. Update the Mobidex npm package to use /fork and worktree fork flows.",
-            command: "npm install -g mobidex@latest"
-        )
+            command: "npm install -g mobidex@latest"        )
     }
 }

@@ -14,12 +14,12 @@ final class TurnFileAutocompleteTokenTests: XCTestCase {
         XCTAssertNil(token)
     }
 
-    func testTrailingTokenAllowsFilePathsWithSpacesWhenTheyLookLikeAPath() {
-        let token = TurnViewModel.trailingFileAutocompleteToken(
-            in: "update @Codex Mobile App Plan/Codex iOS Recap TLDR.md"
+    func testTrailingTokenStopsAtWhitespaceAfterAtToken() {
+        XCTAssertNil(
+            TurnViewModel.trailingFileAutocompleteToken(
+                in: "update @Codex Mobile App Plan/Codex iOS Recap TLDR.md"
+            )
         )
-
-        XCTAssertEqual(token?.query, "Codex Mobile App Plan/Codex iOS Recap TLDR.md")
     }
 
     func testTrailingTokenDoesNotParseEmailAddress() {
@@ -34,13 +34,16 @@ final class TurnFileAutocompleteTokenTests: XCTestCase {
         XCTAssertNil(TurnViewModel.trailingFileAutocompleteToken(in: "fix @turnv please"))
     }
 
+    func testTrailingTokenDoesNotStayOpenForSentencePunctuation() {
+        XCTAssertNil(TurnViewModel.trailingFileAutocompleteToken(in: "fix @turnv."))
+    }
+
     func testTrailingTokenDoesNotParseTerminalScopedTaskLabel() {
         XCTAssertNil(TurnViewModel.trailingFileAutocompleteToken(in: "paste @t3tools/contracts:build"))
     }
 
     func testTrailingTokenDoesNotParseBareTerminalHandle() {
-        XCTAssertNil(TurnViewModel.trailingFileAutocompleteToken(in: "paste @mobidex"))
-    }
+        XCTAssertNil(TurnViewModel.trailingFileAutocompleteToken(in: "paste @mobidex"))    }
 
     func testTrailingTokenStillParsesLineReferencedFile() {
         let token = TurnViewModel.trailingFileAutocompleteToken(in: "open @Views/Turn/TurnView.swift:42")
@@ -150,7 +153,7 @@ final class TurnFileAutocompleteTokenTests: XCTestCase {
         )
     }
 
-    func testTrailingAutocompleteStillWorksForOpenPathWithSpaces() {
+    func testTrailingAutocompleteClosesForOpenPathWithSpaces() {
         let mentions = [
             TurnComposerMentionedFile(fileName: "terminal.svg", path: "assets/terminal.svg"),
         ]
@@ -161,11 +164,10 @@ final class TurnFileAutocompleteTokenTests: XCTestCase {
                 confirmedMentions: mentions
             )
         )
-        XCTAssertEqual(
+        XCTAssertNil(
             TurnViewModel.trailingFileAutocompleteToken(
                 in: "compare @Codex Mobile App Plan/Codex iOS Recap TLDR.md"
-            )?.query,
-            "Codex Mobile App Plan/Codex iOS Recap TLDR.md"
+            )
         )
     }
 }

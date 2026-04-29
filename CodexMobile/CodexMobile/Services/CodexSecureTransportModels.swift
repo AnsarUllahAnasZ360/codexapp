@@ -218,7 +218,7 @@ enum CodexTrustedSessionResolveError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noTrustedMac:
-            return "No trusted Mac is available to reconnect."
+            return "No trusted computer is available to reconnect."
         case .unsupportedRelay:
             return "This relay does not support trusted reconnect yet."
         case .macOffline(let message),
@@ -236,9 +236,9 @@ extension CodexSecureConnectionState {
         case .notPaired:
             return "Not paired"
         case .trustedMac:
-            return "Trusted Mac"
+            return "Trusted Computer"
         case .liveSessionUnresolved:
-            return "Trusted Mac ready"
+            return "Trusted Computer ready"
         case .handshaking:
             return "Secure handshake in progress"
         case .encrypted:

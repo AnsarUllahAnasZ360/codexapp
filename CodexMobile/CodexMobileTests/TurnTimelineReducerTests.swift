@@ -320,6 +320,111 @@ final class TurnTimelineReducerTests: XCTestCase {
         XCTAssertEqual(messageIDs, ["tool-1", "tool-2"])
     }
 
+    func testTimelineRenderProjectionCollapsesCompletedTurnBeforeFinalAnswer() {
+        let now = Date()
+        let messages = [
+            makeMessage(
+                id: "user",
+                threadID: "thread",
+                role: .user,
+                text: "Check Gmail",
+                createdAt: now,
+                turnID: "turn-1",
+                orderIndex: 1
+            ),
+            makeMessage(
+                id: "status",
+                threadID: "thread",
+                role: .assistant,
+                text: "I'll use the Gmail connector.",
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                itemID: "status-item",
+                orderIndex: 2
+            ),
+            makeMessage(
+                id: "tool",
+                threadID: "thread",
+                role: .system,
+                kind: .toolActivity,
+                text: "Read inbox",
+                createdAt: now.addingTimeInterval(2),
+                turnID: "turn-1",
+                itemID: "tool-item",
+                orderIndex: 3
+            ),
+            makeMessage(
+                id: "final",
+                threadID: "thread",
+                role: .assistant,
+                text: "Latest TestFlight version: 1.4 (124).",
+                createdAt: now.addingTimeInterval(3),
+                turnID: "turn-1",
+                itemID: "final-item",
+                orderIndex: 4
+            ),
+        ]
+
+        let items = TurnTimelineRenderProjection.project(
+            messages: messages,
+            completedTurnIDs: ["turn-1"]
+        )
+
+        XCTAssertEqual(items.count, 3)
+        guard case .message(let user) = items[0],
+              case .previousMessages(let previousGroup) = items[1],
+              case .message(let final) = items[2] else {
+            return XCTFail("Expected user, previous-messages disclosure, final answer")
+        }
+
+        XCTAssertEqual(user.id, "user")
+        XCTAssertEqual(previousGroup.finalMessageID, "final")
+        XCTAssertEqual(previousGroup.hiddenCount, 2)
+        XCTAssertEqual(previousGroup.messages.map(\.id), ["status", "tool"])
+        XCTAssertEqual(final.id, "final")
+        XCTAssertEqual(
+            TurnTimelineRenderProjection.collapsedFinalMessageIDs(
+                in: messages,
+                completedTurnIDs: ["turn-1"]
+            ),
+            Set(["final"])
+        )
+    }
+
+    func testTimelineRenderProjectionKeepsRunningTurnExpandedBeforeFinalAnswer() {
+        let now = Date()
+        let messages = [
+            makeMessage(
+                id: "status",
+                threadID: "thread",
+                role: .assistant,
+                text: "Working",
+                createdAt: now,
+                turnID: "turn-1",
+                orderIndex: 1
+            ),
+            makeMessage(
+                id: "final",
+                threadID: "thread",
+                role: .assistant,
+                text: "Final",
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                orderIndex: 2
+            ),
+        ]
+
+        let items = TurnTimelineRenderProjection.project(messages: messages)
+        let messageIDs = items.compactMap { item -> String? in
+            if case .message(let message) = item {
+                return message.id
+            }
+            return nil
+        }
+
+        XCTAssertEqual(messageIDs, ["status", "final"])
+    }
+
     func testRemoveDuplicateAssistantMessagesByTurnAndText() {
         let now = Date()
         let messages = [
@@ -549,6 +654,265 @@ final class TurnTimelineReducerTests: XCTestCase {
 
         let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
         XCTAssertEqual(deduped.map(\.id), ["assistant-1"])
+    }
+
+    func testRemoveDuplicateAssistantMessagesCollapsesLateReplaySubsetForSameTurn() {
+        let now = Date()
+        let finalText = """
+        I checked the latest TestFlight email and found the current build.
+
+        Latest TestFlight version: Remodex 1.4 (122) for iOS.
+        """
+        let replayText = "Latest TestFlight version: Remodex 1.4 (122) for iOS."
+        let messages = [
+            makeMessage(
+                id: "assistant-final",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: finalText,
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "item-1"
+            ),
+            makeMessage(
+                id: "assistant-replay",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: replayText,
+                createdAt: now.addingTimeInterval(180),
+                turnID: "turn-1"
+            ),
+        ]
+
+        let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
+
+        XCTAssertEqual(deduped.map(\.id), ["assistant-final"])
+    }
+
+    func testRemoveDuplicateAssistantMessagesKeepsStableOverlappingItems() {
+        let now = Date()
+        let messages = [
+            makeMessage(
+                id: "assistant-1",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "A stable assistant response with an overlapping shared explanation.",
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "item-1"
+            ),
+            makeMessage(
+                id: "assistant-2",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "stable assistant response with an overlapping shared explanation",
+                createdAt: now.addingTimeInterval(180),
+                turnID: "turn-1",
+                itemID: "item-2"
+            ),
+        ]
+
+        let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
+
+        XCTAssertEqual(deduped.map(\.id), ["assistant-1", "assistant-2"])
+    }
+
+    func testRemoveDuplicateAssistantMessagesDropsFullBlockReplayEvenWithStableItem() {
+        let now = Date()
+        let introText = "I'll check Gmail for the latest TestFlight message."
+        let finalText = "Latest TestFlight version: 1.4 (123)."
+        let messages = [
+            makeMessage(
+                id: "assistant-intro",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: introText,
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "item-intro"
+            ),
+            makeMessage(
+                id: "tool",
+                threadID: "thread",
+                role: .system,
+                kind: .toolActivity,
+                text: "Read 6807e4de/...",
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                itemID: "tool-1"
+            ),
+            makeMessage(
+                id: "assistant-final",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: finalText,
+                createdAt: now.addingTimeInterval(2),
+                turnID: "turn-1",
+                itemID: "item-final"
+            ),
+            makeMessage(
+                id: "assistant-replay",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "\(introText)\n\n\(finalText)",
+                createdAt: now.addingTimeInterval(3),
+                turnID: "turn-1",
+                itemID: "item-replay"
+            ),
+        ]
+
+        let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
+
+        XCTAssertEqual(deduped.map(\.id), ["assistant-intro", "tool", "assistant-final"])
+    }
+
+    func testRemoveDuplicateAssistantMessagesDropsFullBlockReplayWhenPriorAssistantTurnIsMissing() {
+        let now = Date()
+        let introText = "I'll check Gmail for the latest TestFlight message."
+        let finalText = "Latest TestFlight version: 1.4 (123)."
+        let messages = [
+            makeMessage(
+                id: "assistant-intro",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: introText,
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "item-intro"
+            ),
+            makeMessage(
+                id: "tool",
+                threadID: "thread",
+                role: .system,
+                kind: .toolActivity,
+                text: "Read 6807e4de/...",
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                itemID: "tool-1"
+            ),
+            makeMessage(
+                id: "assistant-final",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: finalText,
+                createdAt: now.addingTimeInterval(2),
+                itemID: "item-final"
+            ),
+            makeMessage(
+                id: "assistant-replay",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "\(introText)\n\n\(finalText)",
+                createdAt: now.addingTimeInterval(3),
+                turnID: "turn-1",
+                itemID: "item-replay"
+            ),
+        ]
+
+        let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
+
+        XCTAssertEqual(deduped.map(\.id), ["assistant-intro", "tool", "assistant-final"])
+    }
+
+    func testRemoveDuplicateAssistantMessagesDropsLongExactTerminalReplayWithStableItem() {
+        let now = Date()
+        let finalText = """
+        Latest TestFlight inbox email says:
+
+        Remodex version 1.4, build 124
+
+        Subject: "Remodex - Remote AI Coding 1.4 (124) for iOS is now available to test."
+        """
+        let statusText = "I'll use the Gmail connector to search recent inbox mentions."
+        let messages = [
+            makeMessage(
+                id: "assistant-final",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: finalText,
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "item-final"
+            ),
+            makeMessage(
+                id: "assistant-status",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: statusText,
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                itemID: "item-status"
+            ),
+            makeMessage(
+                id: "assistant-terminal-replay",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: finalText,
+                createdAt: now.addingTimeInterval(2),
+                turnID: "turn-1",
+                itemID: "item-terminal"
+            ),
+        ]
+
+        let deduped = TurnTimelineReducer.removeDuplicateAssistantMessages(in: messages)
+
+        XCTAssertEqual(deduped.map(\.id), ["assistant-final", "assistant-status"])
+    }
+
+    func testProjectOrdersLateStatusBeforeFinalUsingCreatedAt() {
+        let now = Date()
+        let messages = [
+            makeMessage(
+                id: "tool-row",
+                threadID: "thread",
+                role: .system,
+                kind: .toolActivity,
+                text: "Read 6807e4de/...",
+                createdAt: now,
+                turnID: "turn-1",
+                itemID: "tool-1",
+                orderIndex: 1
+            ),
+            makeMessage(
+                id: "assistant-final",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "Latest TestFlight inbox email says: Remodex version 1.4, build 124.",
+                createdAt: now.addingTimeInterval(2),
+                turnID: "turn-1",
+                itemID: "item-final",
+                orderIndex: 2
+            ),
+            makeMessage(
+                id: "assistant-status",
+                threadID: "thread",
+                role: .assistant,
+                kind: .chat,
+                text: "I'll use the Gmail connector to search recent inbox mentions.",
+                createdAt: now.addingTimeInterval(1),
+                turnID: "turn-1",
+                itemID: "item-status",
+                orderIndex: 3
+            ),
+        ]
+
+        let projection = TurnTimelineReducer.project(messages: messages)
+
+        XCTAssertEqual(projection.messages.map(\.id), ["tool-row", "assistant-status", "assistant-final"])
     }
 
     func testProjectFiltersHiddenPushResetMarker() {

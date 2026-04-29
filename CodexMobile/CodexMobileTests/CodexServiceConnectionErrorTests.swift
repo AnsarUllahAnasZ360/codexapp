@@ -12,7 +12,6 @@ import UIKit
 @MainActor
 final class CodexServiceConnectionErrorTests: XCTestCase {
     private static var retainedServices: [CodexService] = []
-
     func testBenignBackgroundAbortIsSuppressedFromUserFacingErrors() {
         let service = makeService()
         let error = NWError.posix(.ECONNABORTED)

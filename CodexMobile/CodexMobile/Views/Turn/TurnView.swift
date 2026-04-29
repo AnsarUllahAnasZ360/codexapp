@@ -53,7 +53,11 @@ struct TurnView: View {
         let gitWorkingDirectory = resolvedThread.gitWorkingDirectory
         let isThreadRunning = renderSnapshot.isThreadRunning
         let isEmptyThread = renderSnapshot.messages.isEmpty
-        let threadDisplayPhase = codex.threadDisplayPhase(threadId: thread.id)
+        let threadDisplayPhase = codex.threadDisplayPhase(
+            threadId: thread.id,
+            hasVisibleMessages: !renderSnapshot.messages.isEmpty,
+            isThreadRunning: isThreadRunning
+        )
         // Keep the service-owned loading vs empty-state decision intact while
         // history hydration catches up for previously active conversations.
         let resolvedEmptyConversationState = resolvedEmptyState(for: threadDisplayPhase)
@@ -72,12 +76,12 @@ struct TurnView: View {
         )
         let toolbarNavigationContext = threadNavigationContext(for: resolvedThread)
         let toolbarWorktreeHandoffTitle = isWorktreeProject ? "Hand off to Local" : "Hand off to Worktree"
-        let isGitActionEnabled = canRunGitAction(
+        let isGitActionEnabled = viewModel.gitRepoSync != nil && canRunGitAction(
             isThreadRunning: isThreadRunning,
             gitWorkingDirectory: gitWorkingDirectory
         )
-        let disabledGitActions: Set<TurnGitActionKind> = viewModel.canCreatePullRequest ? [] : [.createPR]
-        let onTapMacHandoff: (() -> Void)? = codex.isConnected ? {
+        let disabledGitActions: Set<TurnGitActionKind> = viewModel.disabledGitActions
+        let onTapMacHandoff: (() -> Void)? = codex.isConnected && codex.supportsDesktopAppHandoff ? {
             isShowingMacHandoffConfirm = true
         } : nil
         let onTapWorktreeHandoff: (() -> Void)? = showsGitControls ? {
@@ -103,6 +107,7 @@ struct TurnView: View {
                 planSessionSource: planSessionSource,
                 allowsAssistantPlanFallbackRecovery: planSessionSource == .compatibilityFallback,
                 threadMessagesForPlanMatching: renderSnapshot.planMatchingMessages,
+                currentWorkingDirectory: gitWorkingDirectory,
                 errorMessage: codex.lastErrorMessage,
                 composerRecoveryAccessory: composerRecoveryAccessory,
                 shouldAnchorToAssistantResponse: shouldAnchorToAssistantResponseBinding,
@@ -408,7 +413,7 @@ struct TurnView: View {
                 viewModel.dismissGitSyncAlert()
             },
             onConfirmMacHandoff: {
-                continueOnMac()
+                continueOnDesktopApp()
             }
         )
         .alert(
@@ -563,7 +568,7 @@ struct TurnView: View {
         }
     }
 
-    private func continueOnMac() {
+    private func continueOnDesktopApp() {
         guard !isHandingOffToMac else { return }
         isHandingOffToMac = true
 
@@ -572,7 +577,7 @@ struct TurnView: View {
 
             do {
                 let handoffService = DesktopHandoffService(codex: codex)
-                try await handoffService.continueOnMac(threadId: thread.id)
+                try await handoffService.continueOnDesktopApp(threadId: thread.id)
             } catch {
                 macHandoffErrorMessage = error.localizedDescription
             }
@@ -714,7 +719,7 @@ struct TurnView: View {
         isThreadRunning: Bool,
         gitWorkingDirectory: String?
     ) -> Bool {
-        canRunGitAction(
+        viewModel.isGitRepositoryInitialized && canRunGitAction(
             isThreadRunning: isThreadRunning,
             gitWorkingDirectory: gitWorkingDirectory
         )
@@ -1237,8 +1242,8 @@ struct TurnView: View {
                 orderedModelOptions: orderedModelOptions,
                 selectedModelTitle: selectedModelTitle,
                 reasoningDisplayOptions: reasoningDisplayOptions,
-                showsGitControls: showsGitControls,
-                isGitBranchSelectorEnabled: canRunGitAction(
+                showsGitControls: showsGitControls && viewModel.isGitRepositoryInitialized,
+                isGitBranchSelectorEnabled: viewModel.isGitRepositoryInitialized && canRunGitAction(
                     isThreadRunning: isThreadRunning,
                     gitWorkingDirectory: gitWorkingDirectory
                 ),
@@ -1292,7 +1297,7 @@ struct TurnView: View {
                     )
                 },
                 onRefreshGitBranches: {
-                    guard showsGitControls else { return }
+                    guard showsGitControls, viewModel.isGitRepositoryInitialized else { return }
                     viewModel.refreshGitBranchTargets(
                         codex: codex,
                         workingDirectory: gitWorkingDirectory,
@@ -1508,8 +1513,7 @@ struct TurnView: View {
                 snapshot: ConnectionRecoverySnapshot(
                     title: "Voice Mode",
                     summary: "Reconnect to your Mac to use voice mode.",
-                    detail: "Keep the Mobidex bridge running on your Mac, then try the microphone again.",
-                    status: .interrupted,
+                    detail: "Keep the Mobidex bridge running on your Mac, then try the microphone again.",                    status: .interrupted,
                     trailingStyle: .action("Reconnect")
                 ),
                 action: .reconnect
@@ -1519,8 +1523,7 @@ struct TurnView: View {
                 snapshot: ConnectionRecoverySnapshot(
                     title: "Voice Mode",
                     summary: "This bridge session does not support voice mode yet.",
-                    detail: "Restart Mobidex on your Mac, then reconnect this iPhone. If it still happens, update Mobidex on your Mac and pair again.",
-                    status: .actionRequired,
+                    detail: "Restart Mobidex on your Mac, then reconnect this iPhone. If it still happens, update Mobidex on your Mac and pair again.",                    status: .actionRequired,
                     trailingStyle: .action("Reconnect")
                 ),
                 action: .reconnect
@@ -1529,8 +1532,8 @@ struct TurnView: View {
             return VoiceRecoveryPresentation(
                 snapshot: ConnectionRecoverySnapshot(
                     title: "Voice Mode",
-                    summary: "Sign in to ChatGPT on your Mac to use voice mode.",
-                    detail: "Open ChatGPT on the paired Mac, sign in there, then come back here and try again.",
+                    summary: "Sign in to ChatGPT on your computer to use voice mode.",
+                    detail: "Open ChatGPT on the paired computer, sign in there, then come back here and try again.",
                     status: .actionRequired,
                     trailingStyle: .action("How To Fix")
                 ),
@@ -1540,8 +1543,8 @@ struct TurnView: View {
             return VoiceRecoveryPresentation(
                 snapshot: ConnectionRecoverySnapshot(
                     title: "Voice Mode",
-                    summary: "ChatGPT voice needs a fresh sign-in on your Mac.",
-                    detail: "Open ChatGPT on the paired Mac, sign in again there, then retry voice mode here.",
+                    summary: "ChatGPT voice needs a fresh sign-in on your computer.",
+                    detail: "Open ChatGPT on the paired computer, sign in again there, then retry voice mode here.",
                     status: .actionRequired,
                     trailingStyle: .action("How To Fix")
                 ),
@@ -1562,8 +1565,8 @@ struct TurnView: View {
             return VoiceRecoveryPresentation(
                 snapshot: ConnectionRecoverySnapshot(
                     title: "Voice Mode",
-                    summary: "Voice mode needs a ChatGPT session on your Mac.",
-                    detail: "API-key-only auth is not enough here. Sign in to ChatGPT on the paired Mac, then try again.",
+                    summary: "Voice mode needs a ChatGPT session on your computer.",
+                    detail: "API-key-only auth is not enough here. Sign in to ChatGPT on the paired computer, then try again.",
                     status: .actionRequired,
                     trailingStyle: .action("How To Fix")
                 ),
